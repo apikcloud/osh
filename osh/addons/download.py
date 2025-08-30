@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+import logging
+import os
+import shutil
+import tempfile
+from pathlib import Path
+
+import click
+
+from osh.compat import Optional
+from osh.github import fetch_branch_zip
+from osh.gitutils import commit, git_add, git_top, update_gitignore
+from osh.helpers import find_addons
+from osh.messages import GIT_ADDONS_IGNORED
+from osh.utils import parse_repository_url, str_to_list
+
+logging.basicConfig(level=logging.INFO)
+
+
+@click.command(name="download")
+@click.argument("url")
+@click.argument("branch")
+@click.option("--token", envvar=["TOKEN", "GH_TOKEN", "GITHUB_TOKEN"])
+@click.option("--addons", "addons_list", help="List of addons separated by commas")
+@click.option("--exclude/--no-exclude", is_flag=True, default=True)
+def main(
+    url: str,
+    branch: str,
+    exclude: bool,
+    token: Optional[str] = None,
+    addons_list: Optional[str] = None,
+):
+    """Download and extract addons from a git repository branch zip."""
+
+    local_repo = git_top()
+    gitignore = local_repo / ".gitignore"
+    url, owner, repo = parse_repository_url(url)
+    addons = [] if addons_list is None else str_to_list(addons_list)
+
+    options = {}
+    if token:
+        options["token"] = token
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        _, extracted_root = fetch_branch_zip(owner, repo, branch, tmpdirname, **options)
+
+        if extracted_root is None:
+            click.Abort("You're fucked")
+            return 1
+
+        logging.debug(extracted_root)
+        logging.debug(os.listdir(extracted_root))
+
+        new_addons = []
+        skipped_addons = []
+        for addon in find_addons(Path(extracted_root)):
+            if addons and addon.name not in addons:
+                skipped_addons.append(addon.name)
+                continue
+
+            target_path = local_repo / addon.name
+
+            try:
+                logging.debug(f"Copy {addon.name} from {addon} to {target_path}")
+                shutil.copytree(addon, target_path)
+            except FileExistsError:
+                logging.warning(f"Skip {addon.name}")
+                skipped_addons.append(addon.name)
+                continue
+
+            new_addons.append(addon.name)
+            new_addons.append(addon.name)
+
+        if skipped_addons:
+            logging.debug(" ".join(skipped_addons))
+
+        if not new_addons:
+            return 0
+
+        logging.info(f"Addons added ({len(new_addons)}): {', '.join(new_addons)}")
+        if exclude:
+            update_gitignore(gitignore, new_addons)
+            git_add([gitignore])
+            commit(GIT_ADDONS_IGNORED, skip_hook=True)

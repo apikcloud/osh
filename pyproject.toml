@@ -1,0 +1,140 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "odoo-scripts-helpers"
+description = "Set of tools to help managing Odoo addons development"
+readme = "README.md"
+license = "AGPL-3.0-only"
+authors = [{name = "Apik"}]
+keywords = ["odoo", "git", "submodules", "manifests", "cli"]
+dynamic = ["version"]
+dependencies = [
+    "appdirs",
+    "docutils",
+    "pypandoc",  # for oca-gen-addon-readme to work with markdown fragments
+    "freezegun",
+    "github3.py>=1",
+    "manifestoo-core>=1.1",
+    "PyYAML",
+    "requests",
+    "twine",
+    "wheel",
+    "pyproject_dependencies ; python_version>='3.7'",
+    "setuptools-odoo",  # for oca-gen-external-dependencies
+    "whool",  # for oca-gen-external-dependencies
+    "typing-extensions; python_version<'3.11'",
+    "importlib-metadata; python_version<'3.10'",
+    "tomli; python_version<'3.11'", # from 3.11 tomllib is in stdlib
+    "backports.zoneinfo; python_version<'3.9'",
+    "click>=8.1",
+    "typing-extensions>=4.7; python_version<'3.8'",
+    "libcst==0.4.*; python_version<'3.8'",
+    "rich>=13.0",  
+    "fixit>2.0",  
+    "black",
+    "tabulate",
+]
+
+
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+]
+
+[project.urls]
+homepage = "https://github.com/apikcloud/osh"
+repository = "https://github.com/apikcloud/osh"
+
+[project.scripts]
+# Main CLI
+osh = "osh.__main__:main"
+
+# Sub-commands
+osh-addons-add = "osh.addons.add:main"
+osh-addons-diff = "osh.addons.diff:main"
+osh-addons-download = "osh.addons.download:main"
+osh-addons-list = "osh.addons.list:main"
+osh-addons-materialize = "osh.addons.materialize:main"
+osh-addons-table = "osh.addons.gen_table:main"
+osh-man-check = "osh.manifest.check:main"
+osh-man-fix = "osh.manifest.fix:main"
+osh-pro-check = "osh.project.check:main"
+osh-pro-exclude = "osh.project.exclusions:main"
+osh-pro-info = "osh.project.info:main"
+osh-pro-update = "osh.project.update:main"
+osh-sub-add = "osh.submodules.add:main"
+osh-sub-check = "osh.submodules.check:main"
+osh-sub-clean = "osh.submodules.clean:main"
+osh-sub-flatten = "osh.submodules:flatten"
+osh-sub-prune = "osh.submodules.prune:main"
+osh-sub-rename = "osh.submodules.rename:main"
+osh-sub-rewrite = "osh.submodules.rewrite:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["osh"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+select = ["E","F","I","B","UP","SIM","PL","C90"]
+ignore = [
+  "E203", # whitespace before ':' (plays better with Black if you add it later)
+]
+exclude = ["tests/fixtures"]
+
+[tool.pyright]
+typeCheckingMode = "basic"
+pythonVersion = "3.7"
+reportMissingTypeStubs = false
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["osh"]
+branch = true
+parallel = true
+omit = [
+  "*/__main__.py",
+  "*/_version.py",
+  "*/tests/*",
+]
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = true
+fail_under = 80
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+  "raise NotImplementedError",
+]
+
+[tool.coverage.paths]
+source = [
+  "osh",
+  ".venv/lib/python*/site-packages/osh",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "coverage[toml]",
+]
