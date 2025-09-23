@@ -51,9 +51,11 @@ homepage = "https://github.com/apikcloud/quality-tools"
 repository = "https://github.com/apikcloud/quality-tools"
 
 [project.scripts]
-gen-addons-table = "tools.gen_addons_table:gen_addons_table"
-fix-manifest = "tools.fix_manifest:main"
-rewrite-manifest = "tools.parser:main"
+odk-gen-addons-table = "tools.gen_addons_table:gen_addons_table"
+odk-fix-manifest = "tools.fix_manifest:main"
+odk-rewrite-manifest = "tools.parser:main"
+odk-flatten-submodules = "tools.bash:flatten_submodules"
+odk-rewrite-submodules = "tools.rewrite_submodules:main"
 
 
 [tool.hatch.build.targets.wheel]
