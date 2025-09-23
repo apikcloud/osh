@@ -53,6 +53,7 @@ repository = "https://github.com/apikcloud/quality-tools"
 [project.scripts]
 gen-addons-table = "tools.gen_addons_table:gen_addons_table"
 fix-manifest = "tools.fix_manifest:main"
+rewrite-manifest = "tools.parser:main"
 
 
 [tool.hatch.build.targets.wheel]

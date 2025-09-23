@@ -4,6 +4,8 @@
 import ast
 import os
 
+import libcst as cst
+
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
 
 
@@ -19,6 +21,7 @@ def get_manifest_path(addon_dir):
 
 
 def parse_manifest(s):
+    return cst.parse_module(s)
     return ast.literal_eval(s)
 
 
@@ -38,6 +41,6 @@ def find_addons(addons_dir, installable_only=True):
             manifest = read_manifest(addon_dir)
         except NoManifestFound:
             continue
-        if installable_only and not manifest.get("installable", True):
-            continue
+        # if installable_only and not manifest.get("installable", True):
+        #     continue
         yield addon_name, addon_dir, manifest
