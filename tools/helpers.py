@@ -67,3 +67,32 @@ def desired_path(url: str, base_dir: str):
     if org == "oca":
         org = org.upper()
     return f"{base_dir.rstrip('/')}/{org}/{repo}"
+
+
+def symlink_targets(repo: Path):
+    targets = []
+    for root, dirs, files in os.walk(repo):
+        if ".git" in dirs:
+            dirs.remove(".git")
+        for n in dirs + files:
+            p = Path(root) / n
+            if p.is_symlink():
+                try:
+                    targets.append(os.readlink(p))
+                except OSError:
+                    pass
+    return targets
+
+
+def relpath(from_path: Path, to_path: Path) -> str:
+    return os.path.relpath(to_path, start=from_path)
+
+
+def find_addons(root: Path):
+    """Yield addon dirs under root (contain __manifest__.py or __openerp__.py)."""
+    for dirpath, dirnames, filenames in os.walk(root):
+        # skip VCS noise
+        if ".git" in dirnames:
+            dirnames.remove(".git")
+        if "__manifest__.py" in filenames or "__openerp__.py" in filenames:
+            yield Path(dirpath)

@@ -54,10 +54,12 @@ repository = "https://github.com/apikcloud/quality-tools"
 odk-gen-addons-table = "tools.gen_addons_table:gen_addons_table"
 odk-fix-manifest = "tools.fix_manifest:main"
 odk-rewrite-manifest = "tools.parser:main"
-odk-flatten-submodules = "tools.bash:flatten_submodules"
-odk-rewrite-submodules = "tools.rewrite_submodules:main"
-odk-check-submodules = "tools.check_submodules:main"
-odk-prune-submodules = "tools.submodules.prune:main"
+odk-submodules-flatten = "tools.bash:flatten_submodules"
+odk-submodules-rewrite = "tools.submodules.rewrite:main"
+odk-submodules-check = "tools.submodules.check:main"
+odk-submodules-prune = "tools.submodules.prune:main"
+odk-submodules-add = "tools.submodules.add:main"
+odk-addons-list = "tools.addons.list:main"
 
 
 [tool.hatch.build.targets.wheel]

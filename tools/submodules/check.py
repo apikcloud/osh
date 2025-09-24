@@ -1,56 +1,8 @@
 #!/usr/bin/env python3
-import os
-import subprocess
 import sys
-from pathlib import Path
 
-
-# --- helpers ---
-def run(cmd, capture=True):
-    res = subprocess.run(cmd, text=True, capture_output=capture, check=True)
-    return res.stdout if capture else None
-
-
-def git_top():
-    out = run(["git", "rev-parse", "--show-toplevel"]).strip()
-    return Path(out)
-
-
-def git_get_regexp(gitmodules: Path, pattern: str):
-    try:
-        out = run(["git", "config", "-f", str(gitmodules), "--get-regexp", pattern])
-        lines = [l for l in out.splitlines() if l.strip()]
-        kv = []
-        for l in lines:
-            k, v = l.split(" ", 1)
-            kv.append((k.strip(), v.strip()))
-        return kv
-    except subprocess.CalledProcessError:
-        return []
-
-
-def parse_submodules(gitmodules: Path):
-    paths = git_get_regexp(gitmodules, r"^submodule\..*\.path$")
-    info = {}
-    for k, v in paths:
-        name = k.split(".")[1]
-        info[name] = v
-    return info
-
-
-def symlink_targets(repo: Path):
-    targets = []
-    for root, dirs, files in os.walk(repo):
-        if ".git" in dirs:
-            dirs.remove(".git")
-        for n in dirs + files:
-            p = Path(root) / n
-            if p.is_symlink():
-                try:
-                    targets.append(os.readlink(p))
-                except OSError:
-                    pass
-    return targets
+from tools.gitutils import git_top, parse_submodules
+from tools.helpers import symlink_targets
 
 
 # --- main ---
