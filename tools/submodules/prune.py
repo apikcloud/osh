@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import logging
 import subprocess
 import sys
 
@@ -24,7 +25,8 @@ def main():
     targets = symlink_targets(repo)
 
     unused = []
-    for name, path in subs.items():
+    for name, item in subs.items():
+        path = str(repo / item["path"])
         if not any(path in t for t in targets):
             unused.append((name, path))
 
@@ -52,6 +54,16 @@ def main():
         if moddir.exists():
             print(f"[cleanup] removing {moddir}")
             subprocess.run(["rm", "-rf", str(moddir)])
+
+    for path in ["third-party", ".third-party"]:
+        old_base_path = repo / path
+
+        if old_base_path.exists():
+            print(f"[prune] removing empty dir: {old_base_path}")
+            try:
+                old_base_path.rmdir()
+            except OSError as error:
+                logging.error(error)
 
     print("\n✅ Unused submodules removed. Don't forget to commit:")
     print("   git commit -m 'chore: remove unused submodules'")

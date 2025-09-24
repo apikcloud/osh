@@ -3,17 +3,28 @@ import logging
 import shutil
 import sys
 
+import click
+
 from tools.gitutils import git_top, parse_submodules
 from tools.helpers import run
 
+"""
+blabla
+"""
 
-# --- main ---
-def main():
+
+@click.command(help=__doc__)
+@click.option("--reset", is_flag=True, help="Do a hard reset before")
+def main(reset: bool):
+    """Clean..."""
     repo = git_top()
     gm = repo / ".gitmodules"
     if not gm.exists():
         print("No .gitmodules found.")
         return 0
+
+    if reset:
+        run(["git", "reset", "--hard"])
 
     subs = parse_submodules(gm)
     if not subs:

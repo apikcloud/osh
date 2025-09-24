@@ -14,6 +14,7 @@ def main():
         return 0
 
     subs = parse_submodules(gm)
+    print(subs)
     if not subs:
         print("No submodules found.")
         return 0
@@ -22,7 +23,8 @@ def main():
     bad_paths = []
     unused = []
 
-    for name, path in subs.items():
+    for name, item in subs.items():
+        path = str(repo / item["path"])
         if not path.startswith(".third-party/"):
             bad_paths.append((name, path))
         # Check if any symlink target mentions this path
