@@ -51,16 +51,16 @@ homepage = "https://github.com/apikcloud/quality-tools"
 repository = "https://github.com/apikcloud/quality-tools"
 
 [project.scripts]
-odk-gen-addons-table = "tools.gen_addons_table:gen_addons_table"
-odk-fix-manifest = "tools.fix_manifest:main"
-odk-rewrite-manifest = "tools.parser:main"
-odk-submodules-flatten = "tools.bash:flatten_submodules"
-odk-submodules-rewrite = "tools.submodules.rewrite:main"
-odk-submodules-check = "tools.submodules.check:main"
-odk-submodules-prune = "tools.submodules.prune:main"
-odk-submodules-add = "tools.submodules.add:main"
-odk-addons-list = "tools.addons.list:main"
 
+osh-man-fix = "tools.manifest.fix:main"
+osh-man-rewrite = "tools.manifest.parser:main"
+osh-sub-flatten = "tools.bash:flatten_submodules"
+osh-sub-rewrite = "tools.submodules.rewrite:main"
+osh-sub-check = "tools.submodules.check:main"
+osh-sub-prune = "tools.submodules.prune:main"
+osh-sub-add = "tools.submodules.add:main"
+osh-addons-list = "tools.addons.list:main"
+osh-addons-table = "tools.addons.gen_table:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["tools"]

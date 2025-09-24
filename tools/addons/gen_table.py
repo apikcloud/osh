@@ -27,7 +27,7 @@ import re
 
 import click
 
-from .gitutils import commit_if_needed
+from tools.gitutils import commit_if_needed
 
 _logger = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
     type=click.Path(dir_okay=True, file_okay=False, exists=True),
     help="Directory containing several addons",
 )
-def gen_addons_table(commit, readme_path, addons_dir):
+def main(commit, readme_path, addons_dir):
     if not os.path.isfile(readme_path):
         _logger.warning("%s not found", readme_path)
         return
@@ -178,4 +178,4 @@ def gen_addons_table(commit, readme_path, addons_dir):
 
 
 if __name__ == "__main__":
-    gen_addons_table()
+    main()

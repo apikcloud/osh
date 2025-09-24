@@ -6,7 +6,7 @@ import black
 import click
 from libcst.display import dump
 
-from tools.manifest import find_addons, get_manifest_path
+from tools.helpers import find_addons_extended, get_manifest_path
 
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
 
@@ -119,7 +119,7 @@ def save_mannifest(content: str, filepath: str) -> None:
 @click.command()
 @click.option("--addons-dir", default=".")
 def main(addons_dir):
-    for name, path, manifest in find_addons(addons_dir):
+    for name, path, manifest in find_addons_extended(addons_dir):
         print(name)
         if name == "apik_data":
             print(dump(manifest))
