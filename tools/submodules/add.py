@@ -11,6 +11,7 @@ from tools.helpers import (
     parse_org_repo_from_url,
     relpath,
     run,
+    str_to_list,
 )
 
 # -------- helpers --------
@@ -75,9 +76,9 @@ def main():
         help="Auto-create symlinks at repo root for each addon folder detected in the submodule",
     )
     ap.add_argument(
-        "--symlink-prefix",
+        "--addons",
         default="",
-        help="Optional prefix for created symlinks (default: '')",
+        help="List of addons for which to create symlinks (default: '')",
     )
     ap.add_argument(
         "--no-commit",
@@ -86,6 +87,8 @@ def main():
     )
     ap.add_argument("--dry-run", action="store_true", help="Show planned actions only")
     args = ap.parse_args()
+
+    addons_to_link = str_to_list(args.addons) if args.addons else []
 
     repo = git_top()
     os.chdir(repo)
@@ -109,7 +112,7 @@ def main():
     print(f"Submodule name    : {sub_name}")
     print(f"Target path       : {sub_path_str}")
     print(f"Auto symlinks     : {'yes' if args.auto_symlinks else 'no'}")
-    print(f"Symlink prefix    : {args.symlink_prefix!r}")
+    print(f"Addons            : {args.addons or ''}")
     print(f"Commit at the end : {'no' if args.no_commit else 'yes'}")
     print(f"Dry-run           : {'yes' if args.dry_run else 'no'}")
     print("==============\n")
@@ -170,7 +173,7 @@ def main():
                 f"  found {len(addons)} addon folder(s). Creating symlinks at repo root…"
             )
             for addon_dir in addons:
-                link_name = f"{args.symlink_prefix}{addon_dir.name}"
+                link_name = f"{addon_dir.name}"
                 link_path = repo / link_name
                 # Determine relative target from repo root to the addon_dir
                 target_rel = relpath(repo, addon_dir)
@@ -181,6 +184,32 @@ def main():
                 created_links.append(link_name)
                 # Stage symlink
                 run(["git", "add", link_name])
+
+    if args.addons:
+        print("[scan] detecting addon folders…")
+        found_addons = find_addons(sub_path)
+        if not found_addons:
+            print("  no addon folders detected.")
+        else:
+            print(f"  found {len(found_addons)} addon folder(s).")
+            for addon_dir in filter(
+                lambda item: item.name in addons_to_link, found_addons
+            ):
+                link_name = f"{addon_dir.name}"
+                link_path = repo / link_name
+                # Determine relative target from repo root to the addon_dir
+                target_rel = relpath(repo, addon_dir)
+                if link_path.exists() or link_path.is_symlink():
+                    print(f"  [skip] {link_name} already exists")
+                    continue
+                os.symlink(target_rel, link_path)
+                created_links.append(link_name)
+                # Stage symlink
+                run(["git", "add", link_name])
+
+        diff = set(addons_to_link).difference(set(created_links))
+        if diff:
+            print(f"Addons not found: {', '.join(diff)}")
 
     # Stage .gitmodules and submodule path
     run(["git", "add", "-A", ".gitmodules", sub_path_str])

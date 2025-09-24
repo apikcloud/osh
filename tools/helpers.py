@@ -138,3 +138,7 @@ def find_addons_extended(addons_dir, installable_only=True):
         # if installable_only and not manifest.get("installable", True):
         #     continue
         yield addon_name, addon_dir, manifest
+
+
+def str_to_list(raw: str, sep=",") -> list:
+    return [item.strip().rstrip() for item in raw.split(sep)]
