@@ -56,6 +56,8 @@ odk-fix-manifest = "tools.fix_manifest:main"
 odk-rewrite-manifest = "tools.parser:main"
 odk-flatten-submodules = "tools.bash:flatten_submodules"
 odk-rewrite-submodules = "tools.rewrite_submodules:main"
+odk-check-submodules = "tools.check_submodules:main"
+odk-prune-submodules = "tools.submodules.prune:main"
 
 
 [tool.hatch.build.targets.wheel]
