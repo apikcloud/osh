@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
 @click.argument("branch")
 @click.option("--token")
 @click.option("--addons")
+@click.option("--exclude/--no-exclude", is_flag=True, default=True)
 def main(url: str, branch: str, token: str = None, addons: str = None):
     local_repo = git_top()
     gitignore = local_repo / ".gitignore"

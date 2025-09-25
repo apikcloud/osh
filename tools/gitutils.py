@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-from tools.helpers import ensure_parent, run
+from tools.helpers import ensure_parent, find_addons_extended, run
 
 
 def commit_if_needed(paths, message, add=True):
@@ -167,5 +167,29 @@ def update_gitignore(
     return True
 
 
-# Example:
-# update_gitignore(".gitignore", [".venv", "dist", "build", "node_modules"], header="# Project folders (managed)")
+def list_available_addons(root: Path):
+    gitmodules = root / ".gitmodules"
+
+    if not gitmodules.exists():
+        raise FileNotFoundError()
+
+    subs = parse_submodules_extended(gitmodules)
+
+    for _, info in subs.items():
+        sub_path = info.get("path")
+        if not sub_path:
+            continue
+        abs_path = root / sub_path
+        if not abs_path.exists():
+            try:
+                run(
+                    ["git", "submodule", "update", "--init", "--", sub_path],
+                    capture=False,
+                )
+            except subprocess.CalledProcessError:
+                pass
+            # re-check
+            if not abs_path.exists():
+                continue
+        for addon_name, addon_dir, manifest in find_addons_extended(abs_path):
+            yield addon_name, addon_dir, manifest

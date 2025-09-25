@@ -52,6 +52,7 @@ repository = "https://github.com/apikcloud/quality-tools"
 
 [project.scripts]
 
+osh-addons-add = "tools.addons.add:main"
 osh-addons-download = "tools.addons.download:main"
 osh-addons-list = "tools.addons.list:main"
 osh-addons-table = "tools.addons.gen_table:main"
