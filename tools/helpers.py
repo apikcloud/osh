@@ -11,7 +11,7 @@ import libcst as cst
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
 
 
-def run(cmd, check=True, capture=False, cwd=None):
+def run(cmd, check=True, capture=False, cwd=None) -> str | None:
     kwargs = dict(text=True, cwd=cwd)
     if capture:
         kwargs.update(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
