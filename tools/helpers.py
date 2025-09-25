@@ -141,4 +141,6 @@ def find_addons_extended(addons_dir, installable_only=True):
 
 
 def str_to_list(raw: str, sep=",") -> list:
+    if not raw:
+        return []
     return [item.strip().rstrip() for item in raw.split(sep)]

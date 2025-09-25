@@ -9,7 +9,7 @@ import click
 
 from tools.github import fetch_branch_zip
 from tools.gitutils import git_top, update_gitignore
-from tools.helpers import find_addons, run
+from tools.helpers import find_addons, run, str_to_list
 from tools.utils import parse_repository_url
 
 logging.basicConfig(level=logging.INFO)
@@ -19,10 +19,12 @@ logging.basicConfig(level=logging.INFO)
 @click.argument("url")
 @click.argument("branch")
 @click.option("--token")
-def main(url: str, branch: str, token: str = None):
+@click.option("--addons")
+def main(url: str, branch: str, token: str = None, addons: str = None):
     local_repo = git_top()
     gitignore = local_repo / ".gitignore"
     url, owner, repo = parse_repository_url(url)
+    addon = str_to_list(addons)
 
     options = {}
     if token:
@@ -37,6 +39,10 @@ def main(url: str, branch: str, token: str = None):
         new_addons = []
         skipped_addons = []
         for addon in find_addons(extracted_root):
+            if addons and addon.name not in addons:
+                skipped_addons.append(addon.name)
+                continue
+
             target_path = os.path.join(local_repo, addon.name)
 
             try:
