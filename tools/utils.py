@@ -1,8 +1,9 @@
 import os
 import re
 import subprocess
-from typing import Tuple
 from urllib.parse import urlparse
+
+from tools.compat import Tuple
 
 
 def get_exec_dir():

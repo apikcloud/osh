@@ -1,8 +1,9 @@
 import os
 import zipfile
-from typing import Optional, Tuple
 
 import requests
+
+from tools.compat import Optional, Tuple
 
 GITHUB_API = "https://api.github.com"
 

@@ -3,8 +3,8 @@
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable
 
+from tools.compat import Iterable
 from tools.helpers import ensure_parent, find_addons_extended, run
 
 
