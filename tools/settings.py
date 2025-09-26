@@ -3,6 +3,8 @@ import black
 NEW_SUBMODULES_PATH = ".third-party"
 OLD_SUBMODULES_PATH = "third-party"
 
+GITHUB_API = "https://api.github.com"
+
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
 
 BLACK_MODE = black.FileMode()

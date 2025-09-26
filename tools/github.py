@@ -4,8 +4,7 @@ import zipfile
 import requests
 
 from tools.compat import Optional, Tuple
-
-GITHUB_API = "https://api.github.com"
+from tools.settings import GITHUB_API
 
 
 def _headers(token: Optional[str]) -> dict:

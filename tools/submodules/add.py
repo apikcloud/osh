@@ -18,7 +18,6 @@ from tools.helpers import (
     desired_path,
     ensure_parent,
     relpath,
-    str_to_list,
 )
 from tools.messages import (
     ADD_SUBMODULES_PLAN,
@@ -26,7 +25,7 @@ from tools.messages import (
     GIT_SUBMODULE_ADD_DESC,
 )
 from tools.settings import NEW_SUBMODULES_PATH
-from tools.utils import human_readable, parse_repository_url
+from tools.utils import human_readable, parse_repository_url, str_to_list
 
 
 def find_addons(submodule_dir: Path):

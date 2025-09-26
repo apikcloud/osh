@@ -1,37 +1,14 @@
 #!/usr/bin/env python3
 import ast
 import contextlib
-import logging
 import os
-import subprocess
 from pathlib import Path
 
 import libcst as cst
 
-from tools.compat import Optional, Union
 from tools.exceptions import NoManifestFound
+from tools.settings import MANIFEST_NAMES
 from tools.utils import parse_repository_url
-
-MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
-
-
-def run(
-    cmd: list,
-    check: bool = True,
-    capture: bool = False,
-    cwd: Optional[str] = None,
-    name: Optional[str] = None,
-) -> Union[str, None]:
-    kwargs: dict = dict(text=True, cwd=cwd)
-    if capture:
-        # assign explicitly to avoid static type checkers inferring incompatible dict value types
-        kwargs["stdout"] = subprocess.PIPE
-        kwargs["stderr"] = subprocess.PIPE
-
-    logging.debug(f"[{name or 'run'}] {' '.join(cmd)}")
-
-    res = subprocess.run(cmd, check=check, **kwargs)
-    return res.stdout if capture else None
 
 
 def ask(prompt: str, default="y"):
@@ -135,9 +112,3 @@ def find_addons_extended(addons_dir: str, installable_only: bool = False):
         if installable_only and not manifest.get("installable", True):
             continue
         yield name, path, manifest
-
-
-def str_to_list(raw: str, sep=",") -> list:
-    if not raw:
-        return []
-    return [item.strip().rstrip() for item in raw.split(sep)]

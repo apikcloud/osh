@@ -5,8 +5,9 @@ import os
 import click
 
 from tools.gitutils import commit, git_add, git_top, list_available_addons
-from tools.helpers import find_addons_extended, relpath, str_to_list
+from tools.helpers import find_addons_extended, relpath
 from tools.messages import GIT_ADDONS_NEW
+from tools.utils import str_to_list
 
 
 @click.command("add")
