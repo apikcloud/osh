@@ -175,7 +175,3 @@ def main(commit, readme_path, addons_dir):
             [readme_path],
             "[UPD] addons table in README.md",
         )
-
-
-if __name__ == "__main__":
-    main()

@@ -2,14 +2,14 @@
 import logging
 import os
 import shutil
-import sys
 import tempfile
 
 import click
 
 from tools.github import fetch_branch_zip
-from tools.gitutils import git_top, update_gitignore
-from tools.helpers import find_addons, run, str_to_list
+from tools.gitutils import commit, git_add, git_top, update_gitignore
+from tools.helpers import find_addons, str_to_list
+from tools.messages import GIT_IGNORED_ADDONS
 from tools.utils import parse_repository_url
 
 logging.basicConfig(level=logging.INFO)
@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.INFO)
 @click.command()
 @click.argument("url")
 @click.argument("branch")
-@click.option("--token")
-@click.option("--addons")
+@click.option("--token", envvar=["TOKEN", "GH_TOKEN", "GITHUB_TOKEN"])
+@click.option("--addons", help="List of addons separated by commas")
 @click.option("--exclude/--no-exclude", is_flag=True, default=True)
 def main(url: str, branch: str, token: str = None, addons: str = None):
     local_repo = git_top()
@@ -64,16 +64,5 @@ def main(url: str, branch: str, token: str = None, addons: str = None):
 
         logging.info(f"Addons added ({len(new_addons)}): {', '.join(new_addons)}")
         update_gitignore(gitignore, new_addons)
-        run(["git", "add", gitignore])
-        run(
-            [
-                "git",
-                "commit",
-                "-m",
-                "chore: ignored addons",
-            ]
-        )
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+        git_add([gitignore])
+        commit(GIT_IGNORED_ADDONS)

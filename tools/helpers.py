@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import ast
+import logging
 import os
 import re
 import subprocess
@@ -8,13 +9,24 @@ from urllib.parse import urlparse
 
 import libcst as cst
 
+from tools.exceptions import NoManifestFound
+
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
 
 
-def run(cmd, check=True, capture=False, cwd=None) -> str | None:
+def run(
+    cmd: list,
+    check: bool = True,
+    capture: bool = False,
+    cwd: str = None,
+    name: str = None,
+) -> str | None:
     kwargs = dict(text=True, cwd=cwd)
     if capture:
         kwargs.update(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    logging.debug(f"[{name or 'run'}] {' '.join(cmd)}")
+
     res = subprocess.run(cmd, check=check, **kwargs)
     return res.stdout if capture else None
 
@@ -101,10 +113,6 @@ def find_addons(root: Path):
             dirnames.remove(".git")
         if "__manifest__.py" in filenames or "__openerp__.py" in filenames:
             yield Path(dirpath)
-
-
-class NoManifestFound(Exception):
-    pass
 
 
 def get_manifest_path(addon_dir):

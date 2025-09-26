@@ -1,25 +1,36 @@
 #!/usr/bin/env python3
 import logging
-import subprocess
-import sys
+import shutil
 
-from tools.gitutils import git_top, parse_submodules
-from tools.helpers import run, symlink_targets
+import click
 
-# --- helpers ---
+from tools.gitutils import (
+    commit,
+    git_add_all,
+    git_top,
+    parse_submodules,
+    submodule_deinit,
+)
+from tools.helpers import symlink_targets
+from tools.messages import GIT_PRUNE_SUBMODULES
 
 
-# --- main ---
-def main():
+@click.command()
+@click.option(
+    "--no-commit",
+    is_flag=True,
+    default=True,
+)
+def main(no_commit: bool):
     repo = git_top()
     gm = repo / ".gitmodules"
     if not gm.exists():
-        print("No .gitmodules found.")
+        click.echo("No .gitmodules found.")
         return 0
 
     subs = parse_submodules(gm)
     if not subs:
-        print("No submodules found.")
+        click.echo("No submodules found.")
         return 0
 
     targets = symlink_targets(repo)
@@ -31,45 +42,49 @@ def main():
             unused.append((name, path))
 
     if not unused:
-        print("✅ No unused submodules detected.")
+        click.echo("✅ No unused submodules detected.")
         return 0
 
-    print("The following submodules appear unused (no symlinks point to them):")
+    click.echo("The following submodules appear unused (no symlinks point to them):")
     for name, path in unused:
-        print(f"  - {name}: {path}")
+        click.echo(f"  - {name}: {path}")
 
     confirm = input("\nRemove these submodules? [y/N] ").strip().lower()
     if confirm not in ("y", "yes"):
-        print("Aborted.")
+        click.echo("Aborted.")
         return 1
 
     for name, path in unused:
-        print(f"[remove] {name}: {path}")
-        # Deinit
-        run(["git", "submodule", "deinit", "-f", path])
-        # Remove from index + working tree
-        run(["git", "rm", "-f", path])
+        click.echo(f"[remove] {name}: {path}")
+        # Deinit + remove from index + working tree
+        submodule_deinit(path, delete=True)
+
         # Cleanup .git/modules leftovers
         moddir = repo / ".git" / "modules" / path
         if moddir.exists():
-            print(f"[cleanup] removing {moddir}")
-            subprocess.run(["rm", "-rf", str(moddir)])
+            click.echo(f"[cleanup] removing {moddir}")
+            shutil.rmtree(str(moddir))
 
     for path in ["third-party", ".third-party"]:
         old_base_path = repo / path
 
         if old_base_path.exists():
-            print(f"[prune] removing empty dir: {old_base_path}")
+            click.echo(f"[prune] removing empty dir: {old_base_path}")
             try:
                 old_base_path.rmdir()
             except OSError as error:
                 logging.error(error)
 
-    print("\n✅ Unused submodules removed. Don't forget to commit:")
-    print("   git commit -m 'chore: remove unused submodules'")
+    # TODO: improve commit functionality...
+    if not no_commit:
+        git_add_all()
+        commit(GIT_PRUNE_SUBMODULES)
+
+    click.echo("\n✅ Unused submodules removed.")
+
+    if no_commit:
+        click.echo(
+            "Don't forget to commit: git commit -m 'chore: remove unused submodules'"
+        )
 
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

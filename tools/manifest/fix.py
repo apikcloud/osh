@@ -82,18 +82,17 @@ def process_manifest(manifest: str, force_default: bool = True):
             changed = True
 
     # Cleaning up summary
-    if summary := manifest.get("summary"):
-        manifest["summary"] = summary.strip().rstrip()
+    if manifest.get("summary"):
+        manifest["summary"] = manifest.get("summary").strip().rstrip()
         changed = True
 
     # Remove description
-    if desc := manifest.get("description"):
-        if desc:
-            manifest.pop("description")
+    if manifest.get("description"):
+        manifest.pop("description")
+        changed = True
+        if "summary" not in manifest:
+            manifest["summary"] = manifest.get("description").strip().rstrip()
             changed = True
-            if "summary" not in manifest:
-                manifest["summary"] = desc.strip().rstrip()
-                changed = True
 
     manifest["depends"].sort()
     if "base" in manifest["depends"]:
@@ -120,10 +119,10 @@ def save_mannifest(content: str, filepath: str) -> None:
 @click.option("--addons-dir", default=".")
 def main(addons_dir):
     for name, path, manifest in find_addons_extended(addons_dir):
-        print(name)
+        click.echo(name)
         if name == "apik_data":
-            print(dump(manifest))
-            print(manifest.code)
+            click.echo(dump(manifest))
+            click.echo(manifest.code)
             return
 
         continue
@@ -133,8 +132,4 @@ def main(addons_dir):
         if changed:
             filepath = os.path.join(addons_dir, get_manifest_path(name))
             save_mannifest(manifest, filepath)
-            print(f"✅ Edited {name} : {filepath}")
-
-
-if __name__ == "__main__":
-    pass
+            click.echo(f"✅ Edited {name} : {filepath}")

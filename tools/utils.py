@@ -3,7 +3,7 @@ import re
 import subprocess
 from urllib.parse import urlparse
 
-from tools.compat import Tuple
+from tools.compat import Any, Tuple
 
 
 def get_exec_dir():
@@ -93,3 +93,9 @@ def parse_repository_url(url: str) -> Tuple[str, str, str]:
         return canonical, owner, repo
 
     raise ValueError(f"Unsupported URL scheme in: {url}")
+
+
+def human_readable(raw: Any) -> str:
+    if isinstance(raw, bool):
+        return "yes" if raw else "no"
+    return str(raw)

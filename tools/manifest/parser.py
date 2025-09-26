@@ -477,7 +477,3 @@ def main(
 
     if check and changed_count > 0:
         sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()

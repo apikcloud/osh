@@ -1,47 +1,45 @@
 #!/usr/bin/env python3
-import argparse
 import csv
 import json
 import subprocess
 import sys
 
-from tools.gitutils import git_top, parse_submodules_extended
-from tools.helpers import find_addons, run
+import click
+
+from tools.gitutils import git_top, parse_submodules_extended, submodule_update
+from tools.helpers import find_addons
 
 
-# ---------- main ----------
-def main():
-    ap = argparse.ArgumentParser(
-        description="List Odoo addons available inside locally present submodules."
-    )
-    ap.add_argument(
-        "--format",
-        choices=["text", "json", "csv"],
-        default="text",
-        help="Output format (default: text)",
-    )
-    ap.add_argument(
-        "--init-missing",
-        action="store_true",
-        help="Run 'git submodule update --init' for submodules whose path is missing on disk",
-    )
-    ap.add_argument(
-        "--only",
-        nargs="*",
-        default=None,
-        help="Limit to these submodule names (as in .gitmodules)",
-    )
-    args = ap.parse_args()
-
+@click.command()
+@click.option(
+    "--format",
+    type=click.Choice(["text", "json", "csv"]),
+    default="text",
+    show_default=True,
+    help="Output format (default: text)",
+)
+@click.option(
+    "--init/--no-init",
+    is_flag=True,
+    help="Run 'git submodule update --init' for submodules whose path is missing on disk",
+)
+@click.option(
+    "--name",
+    "-n",
+    "submodules",
+    multiple=True,
+    help="Limit to these submodule names (as in .gitmodules)",
+)
+def main(format: str, init: bool, submodules: tuple):
     repo = git_top()
     gm = repo / ".gitmodules"
     if not gm.exists():
-        print("No .gitmodules found.", file=sys.stderr)
+        click.echo("No .gitmodules found.", file=sys.stderr)
         return 1
 
     subs = parse_submodules_extended(gm)
-    if args.only:
-        subs = {k: v for k, v in subs.items() if k in args.only}
+    if submodules:
+        subs = {k: v for k, v in subs.items() if k in submodules}
 
     results = []
     for name, info in subs.items():
@@ -50,12 +48,9 @@ def main():
             continue
         abs_path = repo / sub_path
         if not abs_path.exists():
-            if args.init_messing == args.init_missing:  # small typo-proofing
+            if init:  # small typo-proofing
                 try:
-                    run(
-                        ["git", "submodule", "update", "--init", "--", sub_path],
-                        capture=False,
-                    )
+                    submodule_update(sub_path)
                 except subprocess.CalledProcessError:
                     pass
             # re-check
@@ -76,9 +71,9 @@ def main():
     results.sort(key=lambda item: item["addon"])
 
     # Output
-    if args.format == "json":
+    if format == "json":
         print(json.dumps(results, indent=2, ensure_ascii=False))
-    elif args.format == "csv":
+    elif format == "csv":
         fields = ["addon", "submodule", "path", "submodule_path", "url", "branch"]
         w = csv.DictWriter(sys.stdout, fieldnames=fields)
         w.writeheader()
@@ -86,17 +81,13 @@ def main():
             w.writerow(row)
     else:
         if not results:
-            print("No addons found in local submodules.")
+            click.echo("No addons found in local submodules.")
             return 0
         # compact text table
-        print(f"Found {len(results)} addon(s):")
+        click.echo(f"Found {len(results)} addon(s):")
         for r in results:
-            print(
+            click.echo(
                 f"- {r['addon']:30}  [{r['submodule']}]  {r['path']}  (branch={r['branch'] or '-'})"
             )
 
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

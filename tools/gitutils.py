@@ -1,10 +1,10 @@
 # Copyright (c) 2018 ACSONE SA/NV
 # License AGPLv3 (https://www.gnu.org/licenses/agpl-3.0-standalone.html)
 import subprocess
-import sys
 from pathlib import Path
 
 from tools.compat import Iterable
+from tools.exceptions import NoGitRepository
 from tools.helpers import ensure_parent, find_addons_extended, run
 
 
@@ -22,17 +22,90 @@ def commit_if_needed(paths, message, add=True):
         return False
 
 
-# def git_top():
-#     out = run(["git", "rev-parse", "--show-toplevel"], capture=True).strip()
-#     return Path(out)
+def git_add(paths: list):
+    cmd = ["git", "add"] + paths
+    subprocess.check_call(cmd)
+
+
+def git_config_submodule(filepath: str, submodule: str, key: str, value: str):
+    cmd = [
+        "git",
+        "config",
+        "-f",
+        filepath,
+        f"submodule.{submodule}.{key}",
+        value,
+    ]
+    run(cmd, name="config")
+
+
+def submodule_deinit(path: str, delete: bool = False) -> None:
+    run(["git", "submodule", "deinit", "-f", path], name="submodule deinit")
+
+    if delete:
+        # Remove from index + working tree
+        run(["git", "rm", "-f", path], name="submodule delete")
+
+
+def commit(message: str, description: str = None, skip_hook: bool = False):
+    cmd = [
+        "git",
+        "commit",
+        "-m",
+        message,
+    ]
+    if description:
+        # Use -m twice to preserve newlines robustly
+        cmd.extend(["-m", description])
+    if skip_hook:
+        cmd.insert(2, "--no-veritfy")
+    run(cmd, name="commit")
+
+
+def add_submodule(url: str, name: str, path: str, branch: str = None) -> None:
+    cmd = [
+        "git",
+        "submodule",
+        "add",
+        "--name",
+        name,
+    ]
+    if branch:
+        cmd.extend(4, ["-b", branch])
+    cmd.extend([url, path])
+    run(cmd, name="add submodule")
+
+
+def submodule_sync() -> None:
+    cmd = ["git", "submodule", "sync", "--recursive"]
+    run(cmd, name="sync")
+
+
+def submodule_update(path: str = None) -> None:
+    cmd = ["git", "submodule", "update", "--init"]
+
+    if path:
+        cmd.extend(["--", path])
+    else:
+        cmd.extend(["--recursive"])
+
+    run(cmd, name="update")
+
+
+def git_reset_hard() -> None:
+    run(["git", "reset", "--hard"])
 
 
 def git_top() -> Path:
-    out = run(["git", "rev-parse", "--show-toplevel"], capture=True).strip()
+    out = run(["git", "rev-parse", "--show-toplevel"], capture=True, name="top").strip()
     if not out:
-        print("Error: not inside a Git repo.", file=sys.stderr)
-        sys.exit(1)
+        raise NoGitRepository()
+
     return Path(out)
+
+
+def git_add_all():
+    run(["git", "add", "-A"], name="add")
 
 
 def git_get_regexp(gitmodules: Path, pattern: str):
@@ -42,8 +115,8 @@ def git_get_regexp(gitmodules: Path, pattern: str):
             capture=True,
         )
         kv = []
-        for l in out.splitlines():
-            k, v = l.split(" ", 1)
+        for line in out.splitlines():
+            k, v = line.split(" ", 1)
             kv.append((k.strip(), v.strip()))
         return kv
     except subprocess.CalledProcessError:
@@ -182,10 +255,7 @@ def list_available_addons(root: Path):
         abs_path = root / sub_path
         if not abs_path.exists():
             try:
-                run(
-                    ["git", "submodule", "update", "--init", "--", sub_path],
-                    capture=False,
-                )
+                submodule_update(sub_path)
             except subprocess.CalledProcessError:
                 pass
             # re-check

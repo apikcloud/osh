@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional, Tuple
 
 PY37 = sys.version_info < (3, 8)
 PY38 = sys.version_info < (3, 9)
@@ -54,5 +54,6 @@ __all__ = [
     Mapping,
     Optional,
     Tuple,
+    Any,
     TYPE_CHECKING,
 ]
