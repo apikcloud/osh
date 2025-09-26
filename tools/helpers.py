@@ -108,30 +108,33 @@ def get_manifest_path(addon_dir):
             return manifest_path
 
 
-def parse_manifest(s):
-    return cst.parse_module(s)
-    return ast.literal_eval(s)
+def parse_manifest(raw: str) -> dict:
+    return ast.literal_eval(raw)
 
 
-def read_manifest(addon_dir):
-    manifest_path = get_manifest_path(addon_dir)
+def parse_manifest_cst(raw: str) -> cst.CSTNode:
+    return cst.parse_module(raw)
+
+
+def read_manifest(path: str) -> dict:
+    manifest_path = get_manifest_path(path)
     if not manifest_path:
-        raise NoManifestFound(f"no Odoo manifest found in {addon_dir}")
+        raise NoManifestFound(f"no Odoo manifest found in {path}")
     with open(manifest_path) as mf:
         return parse_manifest(mf.read())
 
 
-def find_addons_extended(addons_dir, installable_only=True):
+def find_addons_extended(addons_dir: str, installable_only: bool = False):
     """yield (addon_name, addon_dir, manifest)"""
-    for addon_name in os.listdir(addons_dir):
-        addon_dir = os.path.join(addons_dir, addon_name)
+    for name in os.listdir(addons_dir):
+        path = os.path.join(addons_dir, name)
         try:
-            manifest = read_manifest(addon_dir)
+            manifest = read_manifest(path)
         except NoManifestFound:
             continue
-        # if installable_only and not manifest.get("installable", True):
-        #     continue
-        yield addon_name, addon_dir, manifest
+        if installable_only and not manifest.get("installable", True):
+            continue
+        yield name, path, manifest
 
 
 def str_to_list(raw: str, sep=",") -> list:

@@ -7,6 +7,7 @@ import click
 from libcst.display import dump
 
 from tools.helpers import find_addons_extended, get_manifest_path
+from tools.utils import clean_string
 
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
 
@@ -51,7 +52,7 @@ def format_manifest(data: dict) -> str:
     return black.format_str(raw, mode=BLACK_MODE)
 
 
-def process_manifest(manifest: str, force_default: bool = True):
+def process_manifest(manifest: dict, force_default: bool = True):  # noqa: C901, PLR0912
     changed = False
 
     for key in ["mainteners", "maintener", "maintainer"]:
@@ -83,7 +84,7 @@ def process_manifest(manifest: str, force_default: bool = True):
 
     # Cleaning up summary
     if manifest.get("summary"):
-        manifest["summary"] = manifest.get("summary").strip().rstrip()
+        manifest["summary"] = clean_string(manifest.get("summary"))
         changed = True
 
     # Remove description
@@ -91,7 +92,7 @@ def process_manifest(manifest: str, force_default: bool = True):
         manifest.pop("description")
         changed = True
         if "summary" not in manifest:
-            manifest["summary"] = manifest.get("description").strip().rstrip()
+            manifest["summary"] = clean_string(manifest.get("description"))
             changed = True
 
     manifest["depends"].sort()
@@ -118,7 +119,7 @@ def save_mannifest(content: str, filepath: str) -> None:
 @click.command(name="fix")
 @click.option("--addons-dir", default=".")
 def main(addons_dir):
-    for name, path, manifest in find_addons_extended(addons_dir):
+    for name, _, manifest in find_addons_extended(addons_dir):
         click.echo(name)
         if name == "apik_data":
             click.echo(dump(manifest))

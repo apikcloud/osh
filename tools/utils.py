@@ -107,3 +107,7 @@ def human_readable(raw: Any, sep: str = ", ") -> str:
     if isinstance(raw, (list, tuple, set)):
         return sep.join(raw)
     return str(raw)
+
+
+def clean_string(raw: Any):
+    raw.strip().rstrip() if raw else ""
