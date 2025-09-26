@@ -198,7 +198,7 @@ def main(
         if addons:
             diff = set(addons_to_link).difference(set(created_links))
             if diff:
-                click.echo(f"Addons not found: {', '.join(diff)}")
+                click.echo(f"Addons not found: {human_readable(diff)}")
 
     # Stage .gitmodules and submodule path
     git_add([".gitmodules", sub_path_str])
@@ -210,7 +210,7 @@ def main(
                 url=url,
                 branch=branch,
                 path=sub_path_str,
-                symlinks=", ".join(created_links) if created_links else 0,
+                symlinks=human_readable(created_links) if created_links else 0,
             ),
         )
         click.echo("✅ Submodule added and committed.")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import contextlib
 import os
 import subprocess
 from pathlib import Path
@@ -18,6 +19,7 @@ from tools.gitutils import (
 )
 from tools.helpers import ask, desired_path, is_dir_empty, rewrite_symlink
 from tools.messages import GIT_REWRITE_SUBMODULES
+from tools.utils import human_readable
 
 
 @click.command(name="rewrite")
@@ -75,9 +77,7 @@ def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_di
         if force:
             accepted.append((name, url, oldp, newp))
         else:
-            ans = ask(
-                f"\nApply change for '{name}' ({oldp} -> {newp})? [Y/n/e] ", default="y"
-            )
+            ans = ask(f"\nApply change for '{name}' ({oldp} -> {newp})? [Y/n/e] ", default="y")
             if ans in ("y", "yes"):
                 accepted.append((name, url, oldp, newp))
             elif ans == "e":
@@ -90,7 +90,7 @@ def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_di
         return 0
 
     # Update .gitmodules
-    for name, _, oldp, newp in accepted:
+    for name, _, _, newp in accepted:
         git_config_submodule(str(gm), name, "path", newp)
 
     git_add([str(gm)])
@@ -105,10 +105,10 @@ def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_di
         else:
             # try to init submodule if missing
             click.echo(f"[info] '{oldp}' not found; trying submodule init")
-            try:
+
+            with contextlib.suppress(subprocess.CalledProcessError):
                 submodule_update(oldp)
-            except subprocess.CalledProcessError:
-                pass
+
             if (repo / oldp).exists():
                 click.echo(f"[move] {oldp} -> {newp}")
                 move_with_git(repo / oldp, dst)
@@ -139,19 +139,15 @@ def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_di
     old_base = old_base_dir
     if not old_base:
         # auto-detect from first path segment of old paths if unique, else fallback
-        first_segments = {
-            op.split("/", 1)[0] for (_, _, op, _) in accepted if "/" in op
-        }
+        first_segments = {op.split("/", 1)[0] for (_, _, op, _) in accepted if "/" in op}
         old_base = first_segments.pop() if len(first_segments) == 1 else "third-party"
 
     old_base_path = repo / old_base
     if is_dir_empty(old_base_path):
         click.echo(f"[prune] removing empty dir: {old_base_path}")
-        try:
+
+        with contextlib.suppress(OSError):
             old_base_path.rmdir()
-        except OSError:
-            # not empty (race) or permission -> skip silently
-            pass
 
     # Stage everything just in case (symlinks/renames)
     git_add_all()
@@ -162,7 +158,7 @@ def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_di
             "Modified submodules:",
         ]
         lines += [f"- {name}: {oldp} -> {newp}" for (name, _, oldp, newp) in accepted]
-        commit(GIT_REWRITE_SUBMODULES, description="\n".join(lines))
+        commit(GIT_REWRITE_SUBMODULES, description=human_readable(lines, sep="\n"))
 
         click.echo("Changes committed.")
     else:

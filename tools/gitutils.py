@@ -1,11 +1,13 @@
 # Copyright (c) 2018 ACSONE SA/NV
 # License AGPLv3 (https://www.gnu.org/licenses/agpl-3.0-standalone.html)
+import contextlib
 import subprocess
 from pathlib import Path
 
-from tools.compat import Iterable
+from tools.compat import Iterable, Optional, Union
 from tools.exceptions import NoGitRepository
 from tools.helpers import ensure_parent, find_addons_extended, run
+from tools.utils import human_readable
 
 
 def commit_if_needed(paths, message, add=True):
@@ -47,7 +49,7 @@ def submodule_deinit(path: str, delete: bool = False) -> None:
         run(["git", "rm", "-f", path], name="submodule delete")
 
 
-def commit(message: str, description: str = None, skip_hook: bool = False):
+def commit(message: str, description: Optional[str] = None, skip_hook: bool = False):
     cmd = [
         "git",
         "commit",
@@ -62,7 +64,7 @@ def commit(message: str, description: str = None, skip_hook: bool = False):
     run(cmd, name="commit")
 
 
-def add_submodule(url: str, name: str, path: str, branch: str = None) -> None:
+def add_submodule(url: str, name: str, path: str, branch: Optional[str] = None) -> None:
     cmd = [
         "git",
         "submodule",
@@ -71,7 +73,7 @@ def add_submodule(url: str, name: str, path: str, branch: str = None) -> None:
         name,
     ]
     if branch:
-        cmd.extend(4, ["-b", branch])
+        cmd.extend(["-b", branch])
     cmd.extend([url, path])
     run(cmd, name="add submodule")
 
@@ -81,7 +83,7 @@ def submodule_sync() -> None:
     run(cmd, name="sync")
 
 
-def submodule_update(path: str = None) -> None:
+def submodule_update(path: Optional[str] = None) -> None:
     cmd = ["git", "submodule", "update", "--init"]
 
     if path:
@@ -97,11 +99,11 @@ def git_reset_hard() -> None:
 
 
 def git_top() -> Path:
-    out = run(["git", "rev-parse", "--show-toplevel"], capture=True, name="top").strip()
+    out = run(["git", "rev-parse", "--show-toplevel"], capture=True, name="top")
     if not out:
         raise NoGitRepository()
 
-    return Path(out)
+    return Path(out.strip())
 
 
 def git_add_all():
@@ -114,6 +116,10 @@ def git_get_regexp(gitmodules: Path, pattern: str):
             ["git", "config", "-f", str(gitmodules), "--get-regexp", pattern],
             capture=True,
         )
+
+        if not out:
+            return []
+
         kv = []
         for line in out.splitlines():
             k, v = line.split(" ", 1)
@@ -139,16 +145,13 @@ def parse_submodules(gitmodules: Path):
 def parse_submodules_extended(gitmodules: Path):
     """Return dict name -> {'path': str, 'url': str, 'branch': str|None}"""
     paths = dict(
-        (k.split(".")[1], v)
-        for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.path$")
+        (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.path$")
     )
     urls = dict(
-        (k.split(".")[1], v)
-        for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.url$")
+        (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.url$")
     )
     brs = dict(
-        (k.split(".")[1], v)
-        for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.branch$")
+        (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.branch$")
     )
     out = {}
     for name in set(paths) | set(urls) | set(brs):
@@ -168,14 +171,12 @@ def move_with_git(src: Path, dst: Path):
         if src.exists():
             src.rename(dst)
         run(["git", "add", "-A", str(dst)])
-        try:
+        with contextlib.suppress(subprocess.CalledProcessError):
             run(["git", "rm", "-f", "--cached", str(src)])
-        except subprocess.CalledProcessError:
-            pass
 
 
 def update_gitignore(
-    file_path: str | Path,
+    file_path: Union[str, Path],
     folders: Iterable[str],
     header: str = "# Ignored addons (auto)",
 ) -> bool:
@@ -236,7 +237,7 @@ def update_gitignore(
         tail += [f"{m}\n" for m in missing]
         lines.extend(tail)
 
-    p.write_text("".join(lines), encoding="utf-8")
+    p.write_text(human_readable(lines), encoding="utf-8")
     return True
 
 
@@ -254,12 +255,10 @@ def list_available_addons(root: Path):
             continue
         abs_path = root / sub_path
         if not abs_path.exists():
-            try:
+            with contextlib.suppress(subprocess.CalledProcessError):
                 submodule_update(sub_path)
-            except subprocess.CalledProcessError:
-                pass
+
             # re-check
             if not abs_path.exists():
                 continue
-        for addon_name, addon_dir, manifest in find_addons_extended(abs_path):
-            yield addon_name, addon_dir, manifest
+        yield from find_addons_extended(abs_path)

@@ -101,7 +101,9 @@ def parse_repository_url(url: str) -> Tuple[str, str, str]:
     raise ValueError(f"Unsupported URL scheme in: {url}")
 
 
-def human_readable(raw: Any) -> str:
+def human_readable(raw: Any, sep: str = ", ") -> str:
     if isinstance(raw, bool):
         return "yes" if raw else "no"
+    if isinstance(raw, (list, tuple, set)):
+        return sep.join(raw)
     return str(raw)

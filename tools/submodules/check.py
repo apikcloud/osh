@@ -46,9 +46,7 @@ def main():
         ok = False
 
     if ok:
-        click.echo(
-            "✅ All submodules are under .third-party and used by at least one symlink."
-        )
+        click.echo("✅ All submodules are under .third-party and used by at least one symlink.")
         return 0
     else:
         return 1

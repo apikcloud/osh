@@ -1,5 +1,3 @@
-import os
-
 import click
 
 from tools.submodules.add import main as add

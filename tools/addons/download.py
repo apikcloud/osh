@@ -6,6 +6,7 @@ import tempfile
 
 import click
 
+from tools.compat import Optional
 from tools.github import fetch_branch_zip
 from tools.gitutils import commit, git_add, git_top, update_gitignore
 from tools.helpers import find_addons, str_to_list
@@ -19,13 +20,13 @@ logging.basicConfig(level=logging.INFO)
 @click.argument("url")
 @click.argument("branch")
 @click.option("--token", envvar=["TOKEN", "GH_TOKEN", "GITHUB_TOKEN"])
-@click.option("--addons", help="List of addons separated by commas")
+@click.option("--addons", "addons_list", help="List of addons separated by commas")
 @click.option("--exclude/--no-exclude", is_flag=True, default=True)
-def main(url: str, branch: str, token: str = None, addons: str = None):
+def main(url: str, branch: str, token: Optional[str] = None, addons_list: Optional[str] = None):
     local_repo = git_top()
     gitignore = local_repo / ".gitignore"
     url, owner, repo = parse_repository_url(url)
-    addon = str_to_list(addons)
+    addons = [] if addons_list is None else str_to_list(addons_list)
 
     options = {}
     if token:
@@ -33,6 +34,10 @@ def main(url: str, branch: str, token: str = None, addons: str = None):
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         _, extracted_root = fetch_branch_zip(owner, repo, branch, tmpdirname, **options)
+
+        if extracted_root is None:
+            click.Abort("You're fucked")
+            return 1
 
         logging.debug(extracted_root)
         logging.debug(os.listdir(extracted_root))

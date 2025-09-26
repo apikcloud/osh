@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Any, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 
 PY37 = sys.version_info < (3, 8)
 PY38 = sys.version_info < (3, 9)
@@ -12,10 +12,11 @@ PY311 = sys.version_info >= (3, 11)
 
 # typing
 try:
-    from typing import Final, Literal, ParamSpec, Protocol, Self, TypedDict
+    from typing import Final, Literal, Protocol, TypedDict
 except ImportError:  # 3.7–3.10
+    from typing import Final
+
     from typing_extensions import (  # type: ignore
-        Final,
         Literal,
         ParamSpec,
         Protocol,
@@ -41,19 +42,20 @@ except Exception:
     from backports.zoneinfo import ZoneInfo  # type: ignore
 
 __all__ = [
-    Protocol,
-    TypedDict,
-    Literal,
-    Final,
-    ParamSpec,
-    Self,
-    importlib_metadata,
-    tomllib,
-    ZoneInfo,
-    Iterable,
-    Mapping,
-    Optional,
-    Tuple,
-    Any,
-    TYPE_CHECKING,
+    "Protocol",
+    "TypedDict",
+    "Literal",
+    "Final",
+    "ParamSpec",
+    "Self",
+    "importlib_metadata",
+    "tomllib",
+    "ZoneInfo",
+    "Iterable",
+    "Mapping",
+    "Optional",
+    "Tuple",
+    "Any",
+    "TYPE_CHECKING",
+    "Union",
 ]
