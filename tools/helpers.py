@@ -23,9 +23,11 @@ def run(
     cwd: Optional[str] = None,
     name: Optional[str] = None,
 ) -> Union[str, None]:
-    kwargs = dict(text=True, cwd=cwd)
+    kwargs: dict = dict(text=True, cwd=cwd)
     if capture:
-        kwargs.update(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # assign explicitly to avoid static type checkers inferring incompatible dict value types
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.PIPE
 
     logging.debug(f"[{name or 'run'}] {' '.join(cmd)}")
 
