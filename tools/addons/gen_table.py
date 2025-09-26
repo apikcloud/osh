@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
 # License AGPLv3 (https://www.gnu.org/licenses/agpl-3.0-standalone.html)
 """
 This script replaces markers in the README.md file
@@ -17,10 +16,7 @@ does not matter, will be replaced by the script
 <!-- prettier-ignore-end -->
 """
 
-from __future__ import print_function
-
 import ast
-import io
 import logging
 import os
 import re
@@ -33,6 +29,7 @@ _logger = logging.getLogger(__name__)
 
 MARKERS = r"(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))"
 MANIFESTS = ("__openerp__.py", "__manifest__.py")
+PARTS_NUMBER = 7
 
 
 def sanitize_cell(s):
@@ -54,19 +51,19 @@ def render_maintainers(manifest):
     maintainers = manifest.get("maintainers") or []
     return " ".join(
         [
-            "<a href='https://github.com/{0}'>"
-            "<img src='https://github.com/{0}.png' width='32' height='32' style='border-radius:50%;' alt='{0}'/>"
-            "</a>".format(x)
+            f"<a href='https://github.com/{x}'>"
+            f"<img src='https://github.com/{x}.png' width='32' height='32' style='border-radius:50%;' alt='{x}'/>"
+            "</a>"
             for x in maintainers
         ]
     )
 
 
 def replace_in_readme(readme_path, header, rows_available, rows_unported):
-    with io.open(readme_path, encoding="utf8") as f:
+    with open(readme_path, encoding="utf8") as f:
         readme = f.read()
     parts = re.split(MARKERS, readme, flags=re.MULTILINE)
-    if len(parts) != 7:
+    if len(parts) != PARTS_NUMBER:
         _logger.warning("Addons markers not found or incorrect in %s", readme_path)
         return
     addons = []
@@ -97,7 +94,7 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
     addons.append("\n")
     parts[2:5] = addons
     readme = "".join(parts)
-    with io.open(readme_path, "w", encoding="utf8") as f:
+    with open(readme_path, "w", encoding="utf8") as f:
         f.write(readme)
 
 
@@ -123,13 +120,11 @@ def main(commit, readme_path, addons_dir):
     addon_paths = []  # list of (addon_path, unported)
     for addon_path in os.listdir(addons_dir):
         addon_paths.append((addon_path, False))
-    unported_directory = os.path.join(
-        "" if addons_dir == "." else addons_dir, "__unported__"
-    )
+    unported_directory = os.path.join("" if addons_dir == "." else addons_dir, "__unported__")
     if os.path.isdir(unported_directory):
         for addon_path in os.listdir(unported_directory):
-            addon_path = os.path.join(unported_directory, addon_path)
-            addon_paths.append((addon_path, True))
+            new_addon_path = os.path.join(unported_directory, addon_path)
+            addon_paths.append((new_addon_path, True))
     addon_paths = sorted(addon_paths, key=lambda x: x[0])
     # load manifests
     header = ("addon", "version", "maintainers", "summary")
@@ -145,20 +140,16 @@ def main(commit, readme_path, addons_dir):
             with open(manifest_path) as f:
                 manifest = ast.literal_eval(f.read())
             addon_name = os.path.basename(addon_path)
-            link = "[%s](%s/)" % (addon_name, addon_path)
+            link = f"[{addon_name}]({addon_path}/)"
             version = manifest.get("version") or ""
             summary = manifest.get("summary") or manifest.get("name")
             summary = sanitize_cell(summary)
             installable = manifest.get("installable", True)
             if unported and installable:
-                _logger.warning(
-                    "%s is in __unported__ but is marked installable." % addon_path
-                )
+                _logger.warning(f"{addon_path} is in __unported__ but is marked installable.")
                 installable = False
             if installable:
-                rows_available.append(
-                    (link, version, render_maintainers(manifest), summary)
-                )
+                rows_available.append((link, version, render_maintainers(manifest), summary))
             else:
                 rows_unported.append(
                     (

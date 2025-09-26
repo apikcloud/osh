@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import contextlib
 import csv
 import json
 import subprocess
@@ -49,10 +50,9 @@ def main(format: str, init: bool, submodules: tuple):
         abs_path = repo / sub_path
         if not abs_path.exists():
             if init:  # small typo-proofing
-                try:
+                with contextlib.suppress(subprocess.CalledProcessError):
                     submodule_update(sub_path)
-                except subprocess.CalledProcessError:
-                    pass
+
             # re-check
             if not abs_path.exists():
                 continue

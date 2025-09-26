@@ -47,8 +47,3 @@ def fetch_branch_zip(
         zf.extractall(out_dir)
     extracted_root = os.path.join(out_dir, top.rstrip("/"))
     return zip_path, extracted_root
-
-
-# Example:
-# zip_path, root = fetch_branch_zip("odoo", "odoo", "19.0", "/tmp/odoo", token=os.getenv("GITHUB_TOKEN"))
-# print(zip_path, root)

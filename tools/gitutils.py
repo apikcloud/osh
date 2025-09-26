@@ -217,7 +217,7 @@ def update_gitignore(
     # Find or create header location
     header_line = header.strip()
     try:
-        idx = next(i for i, l in enumerate(lines) if l.strip() == header_line)
+        idx = next(i for i, line in enumerate(lines) if line.strip() == header_line)
         insert_at = idx + 1
         block = []
         # Add a blank line after header if not already

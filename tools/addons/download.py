@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import tempfile
+from pathlib import Path
 
 import click
 
@@ -31,7 +32,6 @@ def main(url: str, branch: str, token: Optional[str] = None, addons_list: Option
     options = {}
     if token:
         options["token"] = token
-
     with tempfile.TemporaryDirectory() as tmpdirname:
         _, extracted_root = fetch_branch_zip(owner, repo, branch, tmpdirname, **options)
 
@@ -44,12 +44,12 @@ def main(url: str, branch: str, token: Optional[str] = None, addons_list: Option
 
         new_addons = []
         skipped_addons = []
-        for addon in find_addons(extracted_root):
+        for addon in find_addons(Path(extracted_root)):
             if addons and addon.name not in addons:
                 skipped_addons.append(addon.name)
                 continue
 
-            target_path = os.path.join(local_repo, addon.name)
+            target_path = local_repo / addon.name
 
             try:
                 logging.debug(f"Copy {addon.name} from {addon} to {target_path}")
@@ -59,6 +59,7 @@ def main(url: str, branch: str, token: Optional[str] = None, addons_list: Option
                 skipped_addons.append(addon.name)
                 continue
 
+            new_addons.append(addon.name)
             new_addons.append(addon.name)
 
         if skipped_addons:

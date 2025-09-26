@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import ast
+import contextlib
 import logging
 import os
 import re
@@ -9,6 +10,7 @@ from urllib.parse import urlparse
 
 import libcst as cst
 
+from tools.compat import Optional, Union
 from tools.exceptions import NoManifestFound
 
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
@@ -18,9 +20,9 @@ def run(
     cmd: list,
     check: bool = True,
     capture: bool = False,
-    cwd: str = None,
-    name: str = None,
-) -> str | None:
+    cwd: Optional[str] = None,
+    name: Optional[str] = None,
+) -> Union[str, None]:
     kwargs = dict(text=True, cwd=cwd)
     if capture:
         kwargs.update(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -94,10 +96,9 @@ def symlink_targets(repo: Path):
         for n in dirs + files:
             p = Path(root) / n
             if p.is_symlink():
-                try:
+                with contextlib.suppress(OSError):
                     targets.append(os.readlink(p))
-                except OSError:
-                    pass
+
     return targets
 
 
@@ -130,7 +131,7 @@ def parse_manifest(s):
 def read_manifest(addon_dir):
     manifest_path = get_manifest_path(addon_dir)
     if not manifest_path:
-        raise NoManifestFound("no Odoo manifest found in %s" % addon_dir)
+        raise NoManifestFound(f"no Odoo manifest found in {addon_dir}")
     with open(manifest_path) as mf:
         return parse_manifest(mf.read())
 
