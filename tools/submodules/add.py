@@ -28,9 +28,6 @@ from tools.messages import (
 )
 from tools.utils import human_readable
 
-# -------- helpers --------
-
-
 # def parse_org_repo_from_url(url: str):
 #     # Supports https://host/org/repo(.git), git@host:org/repo(.git), ssh://git@host/org/repo(.git)
 #     if re.match(r"^[\w.-]+@[\w.-]+:", url):
@@ -59,10 +56,9 @@ def find_addons(submodule_dir: Path):
     return addons
 
 
-@click.command()
 @click.argument(
     "url",
-    help="Remote URL of the submodule (e.g., https://github.com/OCA/server-ux.git)",
+    # help="Remote URL of the submodule (e.g., https://github.com/OCA/server-ux.git)",
 )
 @click.option(
     "-b",
@@ -97,6 +93,7 @@ def find_addons(submodule_dir: Path):
     is_flag=True,
     help="Show planned actions only",
 )
+@click.command(name="add")
 def main(
     url: str,
     branch: str,

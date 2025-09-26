@@ -15,7 +15,7 @@ from tools.helpers import symlink_targets
 from tools.messages import GIT_PRUNE_SUBMODULES
 
 
-@click.command()
+@click.command(name="prune")
 @click.option(
     "--no-commit",
     is_flag=True,

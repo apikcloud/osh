@@ -1,0 +1,33 @@
+# Makefile for osh project
+# Requires Python >=3.8, pip, pytest, ruff installed in your venv.
+
+.PHONY: help install lint typecheck test clean build
+
+# Default target
+help:
+	@echo "Usage:"
+	@echo "  make install      Install package in editable mode"
+	@echo "  make lint         Run ruff linter"
+	@echo "  make typecheck    Run pyright type checking"
+	@echo "  make test         Run pytest suite"
+	@echo "  make build        Build wheel/sdist"
+	@echo "  make clean        Remove build artifacts"
+
+install:
+	pip install -e .[dev] --break-system-packages
+
+lint:
+	ruff check .
+
+typecheck:
+	pyright || true
+
+test:
+	pytest -q --tb=short --disable-warnings
+
+build:
+	python -m build
+
+clean:
+	rm -rf build dist *.egg-info .pytest_cache .ruff_cache .mypy_cache .pyright
+

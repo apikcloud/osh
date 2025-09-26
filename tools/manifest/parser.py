@@ -389,7 +389,7 @@ def iter_manifest_files(root: str) -> Iterable[Tuple[str, str]]:
 # ---------------------------------------------------------------------------
 
 
-@click.command()
+@click.command(name="parser")
 @click.option(
     "--addons-dir",
     default=".",

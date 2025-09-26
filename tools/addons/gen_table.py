@@ -101,7 +101,7 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
         f.write(readme)
 
 
-@click.command(help=__doc__)
+@click.command(help=__doc__, name="generate-table")
 @click.option("--commit/--no-commit", help="git commit changes to README.rst, if any.")
 @click.option(
     "--readme-path",

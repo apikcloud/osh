@@ -19,26 +19,25 @@ from tools.gitutils import (
 from tools.helpers import ask, desired_path, is_dir_empty, rewrite_symlink
 from tools.messages import GIT_REWRITE_SUBMODULES
 
-click.option(
+
+@click.command(name="rewrite")
+@click.option(
     "--base-dir",
     default=".third-party",
     help="Base directory for rewritten paths (default: .third-party)",
 )
-click.option("--force", is_flag=True, help="Apply all changes without prompting")
-click.option("--dry-run", is_flag=True, help="Show planned changes only")
-click.option(
+@click.option("--force", is_flag=True, help="Apply all changes without prompting")
+@click.option("--dry-run", is_flag=True, help="Show planned changes only")
+@click.option(
     "--no-commit",
     is_flag=True,
     help="Do not commit automatically at the end",
 )
-click.option(
+@click.option(
     "--old-base-dir",
     default=None,
     help="Old base dir to prune if empty (default: auto-detect, fallback 'third-party')",
 )
-
-
-@click.command()
 def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_dir: str):
     repo = git_top()
     os.chdir(repo)

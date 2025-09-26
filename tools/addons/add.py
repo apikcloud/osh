@@ -9,7 +9,7 @@ from tools.helpers import find_addons_extended, relpath, str_to_list
 from tools.messages import GIT_NEW_ADDONS
 
 
-@click.command()
+@click.command("add")
 @click.argument("addons")
 @click.option("--no-commit", is_flag=True)
 def main(addons: str, no_commit: bool):

@@ -115,7 +115,7 @@ def save_mannifest(content: str, filepath: str) -> None:
         f.write(output)
 
 
-@click.command()
+@click.command(name="fix")
 @click.option("--addons-dir", default=".")
 def main(addons_dir):
     for name, path, manifest in find_addons_extended(addons_dir):

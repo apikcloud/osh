@@ -15,7 +15,7 @@ from tools.utils import parse_repository_url
 logging.basicConfig(level=logging.INFO)
 
 
-@click.command()
+@click.command(name="download")
 @click.argument("url")
 @click.argument("branch")
 @click.option("--token", envvar=["TOKEN", "GH_TOKEN", "GITHUB_TOKEN"])

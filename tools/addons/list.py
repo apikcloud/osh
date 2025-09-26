@@ -10,7 +10,7 @@ from tools.gitutils import git_top, parse_submodules_extended, submodule_update
 from tools.helpers import find_addons
 
 
-@click.command()
+@click.command(name="list")
 @click.option(
     "--format",
     type=click.Choice(["text", "json", "csv"]),

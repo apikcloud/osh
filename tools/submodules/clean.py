@@ -6,12 +6,8 @@ import click
 
 from tools.gitutils import git_reset_hard, git_top, parse_submodules, submodule_update
 
-"""
-blabla
-"""
 
-
-@click.command(help=__doc__)
+@click.command(name="clean")
 @click.option("--reset", is_flag=True, help="Do a hard reset before")
 def main(reset: bool):
     """Clean..."""

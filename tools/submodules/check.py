@@ -6,7 +6,7 @@ from tools.gitutils import git_top, parse_submodules
 from tools.helpers import symlink_targets
 
 
-@click.command()
+@click.command(name="check")
 def main():
     repo = git_top()
     gm = repo / ".gitmodules"
