@@ -99,12 +99,13 @@ def main(
     branch: str,
     base_dir: str,
     name: str,
-    auto_symlinks: bool,
     addons: str,
-    no_commit: bool,
-    dry_run: bool,
+    **options,
 ):
     addons_to_link = str_to_list(addons) if addons else []
+    auto_symlinks = options["auto_symlinks"]
+    no_commit = options["no_commit"]
+    dry_run = options["dry_run"]
 
     repo = git_top()
     os.chdir(repo)
@@ -140,9 +141,7 @@ def main(
 
     # Safety: prevent overwrite
     if sub_path.exists():
-        click.echo(
-            f"Error: destination already exists: {sub_path_str}", file=sys.stderr
-        )
+        click.echo(f"Error: destination already exists: {sub_path_str}", file=sys.stderr)
         sys.exit(1)
 
     ensure_parent(sub_path)
@@ -163,7 +162,21 @@ def main(
     submodule_update()
 
     created_links = []
-    if auto_symlinks:
+
+    def create_symlink(addon_dir: Path):
+        link_name = f"{addon_dir.name}"
+        link_path = repo / link_name
+        # Determine relative target from repo root to the addon_dir
+        target_rel = relpath(repo, addon_dir)
+        if link_path.exists() or link_path.is_symlink():
+            click.echo(f"  [skip] {link_name} already exists")
+            return
+        os.symlink(target_rel, link_path)
+        created_links.append(link_name)
+        # Stage symlink
+        git_add([link_name])
+
+    if auto_symlinks or addons:
         click.echo("[scan] detecting addon folders…")
         addons_found = find_addons(sub_path)
         if not addons_found:
@@ -172,44 +185,20 @@ def main(
             click.echo(
                 f"  found {len(addons_found)} addon folder(s). Creating symlinks at repo root…"
             )
-            for addon_dir in addons_found:
-                link_name = f"{addon_dir.name}"
-                link_path = repo / link_name
-                # Determine relative target from repo root to the addon_dir
-                target_rel = relpath(repo, addon_dir)
-                if link_path.exists() or link_path.is_symlink():
-                    click.echo(f"  [skip] {link_name} already exists")
-                    continue
-                os.symlink(target_rel, link_path)
-                created_links.append(link_name)
-                # Stage symlink
-                git_add([link_name])
 
-    if addons:
-        click.echo("[scan] detecting addon folders…")
-        found_addons = find_addons(sub_path)
-        if not found_addons:
-            click.echo("  no addon folders detected.")
-        else:
-            click.echo(f"  found {len(found_addons)} addon folder(s).")
-            for addon_dir in filter(
-                lambda item: item.name in addons_to_link, found_addons
-            ):
-                link_name = f"{addon_dir.name}"
-                link_path = repo / link_name
-                # Determine relative target from repo root to the addon_dir
-                target_rel = relpath(repo, addon_dir)
-                if link_path.exists() or link_path.is_symlink():
-                    click.echo(f"  [skip] {link_name} already exists")
-                    continue
-                os.symlink(target_rel, link_path)
-                created_links.append(link_name)
-                # Stage symlink
-                git_add([link_name])
+            source = (
+                addons_found
+                if auto_symlinks
+                else filter(lambda item: item.name in addons_to_link, addons_found)
+            )
 
-        diff = set(addons_to_link).difference(set(created_links))
-        if diff:
-            click.echo(f"Addons not found: {', '.join(diff)}")
+            for addon_dir in source:
+                create_symlink(addon_dir)
+
+        if addons:
+            diff = set(addons_to_link).difference(set(created_links))
+            if diff:
+                click.echo(f"Addons not found: {', '.join(diff)}")
 
     # Stage .gitmodules and submodule path
     git_add([".gitmodules", sub_path_str])

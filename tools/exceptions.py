@@ -4,3 +4,7 @@ class NoManifestFound(Exception):
 
 class NoGitRepository(Exception):
     pass
+
+
+class ScriptNotFound(Exception):
+    pass

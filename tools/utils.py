@@ -1,19 +1,25 @@
+import logging
 import os
 import re
 import subprocess
 from urllib.parse import urlparse
 
 from tools.compat import Any, Tuple
+from tools.exceptions import ScriptNotFound
 
 
 def get_exec_dir():
     return os.path.dirname(__file__)
 
 
-def run_script(script_path: str, *args: str) -> str:
+def run_script(filepath: str, *args: str) -> str:
     """Run a shell script and return its output as a string."""
 
-    path = os.path.join(get_exec_dir(), script_path)
+    path = os.path.join(get_exec_dir(), filepath)
+    logging.debug(f"[script] Running script from {path}")
+
+    if not os.path.exists(path):
+        raise ScriptNotFound()
 
     result = subprocess.run([path, *args], capture_output=True, text=True, check=True)
     return result.stdout

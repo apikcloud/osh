@@ -8,7 +8,6 @@ from tools.submodules import submodules
 @click.group()
 def main():
     """OSH"""
-    pass
 
 
 main.add_command(addons)

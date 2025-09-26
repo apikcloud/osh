@@ -62,7 +62,7 @@ osh-man-rewrite = "tools.manifest.parser:main"
 osh-sub-add = "tools.submodules.add:main"
 osh-sub-check = "tools.submodules.check:main"
 osh-sub-clean = "tools.submodules.clean:main"
-osh-sub-flatten = "tools.scripts.main:flatten_submodules"
+osh-sub-flatten = "tools.submodules:flatten"
 osh-sub-prune = "tools.submodules.prune:main"
 osh-sub-rewrite = "tools.submodules.rewrite:main"
 
