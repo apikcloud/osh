@@ -7,7 +7,7 @@ from tools.helpers import symlink_targets
 
 
 @click.command(name="check")
-def main():
+def main():  # noqa: C901
     repo = git_top()
     gm = repo / ".gitmodules"
     if not gm.exists():

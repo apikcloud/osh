@@ -194,9 +194,7 @@ class ManifestTransformer(CSTTransformer):
             yield cur
 
     # Only transform the first module-level dict (not inside def/class)
-    def leave_Dict(
-        self, original_node: cst.Dict, updated_node: cst.Dict
-    ) -> cst.BaseExpression:
+    def leave_Dict(self, original_node: cst.Dict, updated_node: cst.Dict) -> cst.BaseExpression:
         if self._done:
             return updated_node
 
@@ -244,18 +242,14 @@ class ManifestTransformer(CSTTransformer):
                 old_elem = elements[idx]
                 if isinstance(old_elem, cst.DictElement):
                     like = key_map[old_key].key_node
-                    elements[idx] = old_elem.with_changes(
-                        key=_make_str(new_key, like=like)
-                    )
+                    elements[idx] = old_elem.with_changes(key=_make_str(new_key, like=like))
                     changed = True
 
         def ensure_key(key: str, value: cst.BaseExpression) -> None:
             nonlocal changed
             if key in key_map:
                 return
-            elements.append(
-                cst.DictElement(key=cst.SimpleString(repr(key)), value=value)
-            )
+            elements.append(cst.DictElement(key=cst.SimpleString(repr(key)), value=value))
             changed = True
 
         # 1) Rename misspelled maintainer keys
@@ -270,24 +264,17 @@ class ManifestTransformer(CSTTransformer):
             new_val = _normalize_list_of_strings(val, REPLACEMENTS)
             if new_val is not val:
                 update_value_at("maintainers", new_val)
-        else:
-            # Derive from author if contains "michel" (example heuristic)
-            if "author" in key_map:
-                author_node = key_map["author"].value_node
-                if (
-                    isinstance(author_node, cst.SimpleString)
-                    and "michel" in _string_value(author_node).lower()
-                ):
-                    ensure_key(
-                        "maintainers",
-                        cst.List(
-                            [
-                                cst.Element(
-                                    value=_make_str(REPLACEMENTS["Michel GUIHENEUF"])
-                                )
-                            ]
-                        ),
-                    )
+        # Derive from author if contains "michel" (example heuristic)
+        elif "author" in key_map:
+            author_node = key_map["author"].value_node
+            if (
+                isinstance(author_node, cst.SimpleString)
+                and "michel" in _string_value(author_node).lower()
+            ):
+                ensure_key(
+                    "maintainers",
+                    cst.List([cst.Element(value=_make_str(REPLACEMENTS["Michel GUIHENEUF"]))]),
+                )
 
         # 3) Force canonical values
         for k, v in FORCED_KEYS.items():
@@ -296,9 +283,7 @@ class ManifestTransformer(CSTTransformer):
                 if not (isinstance(cur, cst.SimpleString) and _string_value(cur) == v):
                     update_value_at(
                         k,
-                        _make_str(
-                            v, like=cur if isinstance(cur, cst.SimpleString) else None
-                        ),
+                        _make_str(v, like=cur if isinstance(cur, cst.SimpleString) else None),
                     )
             else:
                 ensure_key(k, _make_str(v))
@@ -374,9 +359,7 @@ def iter_manifest_files(root: str) -> Iterable[Tuple[str, str]]:
     root = os.path.abspath(root)
     for dirpath, dirnames, filenames in os.walk(root):
         # prune
-        dirnames[:] = [
-            d for d in dirnames if d not in EXCLUDE_DIRS and not d.startswith(".")
-        ]
+        dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS and not d.startswith(".")]
         for mf in MANIFEST_NAMES:
             if mf in filenames:
                 addon = os.path.basename(dirpath)
@@ -420,20 +403,18 @@ def iter_manifest_files(root: str) -> Iterable[Tuple[str, str]]:
     help="Exit 1 if any file would change (useful in CI/pre-commit).",
 )
 @click.option("--verbose/--quiet", default=True, show_default=True)
-def main(
+def main(  # noqa: C901, PLR0912, PLR0913
     addons_dir: str,
-    manifest_path: Optional[str],
     inject_headers: bool,
     dry: bool,
     check: bool,
     verbose: bool,
+    manifest_path: Optional[str] = None,
 ) -> None:
-    targets: List[Tuple[str, str]] = []
+    targets: list[tuple[str, str]] = []
 
     if manifest_path:
-        targets.append(
-            (os.path.basename(os.path.dirname(manifest_path)), manifest_path)
-        )
+        targets.append((os.path.basename(os.path.dirname(manifest_path)), manifest_path))
     else:
         targets.extend(iter_manifest_files(addons_dir))
 
@@ -447,7 +428,7 @@ def main(
 
     for name, path in targets:
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 original = f.read()
             module = cst.parse_module(original)
             wrapper = cst.MetadataWrapper(module)
@@ -468,9 +449,8 @@ def main(
             if not dry:
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(new_code)
-        else:
-            if verbose:
-                click.echo(f"➡️  No change {name} : {path}")
+        elif verbose:
+            click.echo(f"➡️  No change {name} : {path}")
 
     if verbose:
         click.echo(f"Done. {changed_count}/{total} manifest(s) changed.")

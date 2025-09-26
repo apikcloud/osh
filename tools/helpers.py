@@ -3,15 +3,14 @@ import ast
 import contextlib
 import logging
 import os
-import re
 import subprocess
 from pathlib import Path
-from urllib.parse import urlparse
 
 import libcst as cst
 
 from tools.compat import Optional, Union
 from tools.exceptions import NoManifestFound
+from tools.utils import parse_repository_url
 
 MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
 
@@ -33,22 +32,6 @@ def run(
 
     res = subprocess.run(cmd, check=check, **kwargs)
     return res.stdout if capture else None
-
-
-def parse_org_repo_from_url(url: str):
-    # https://host/org/repo(.git), git@host:org/repo(.git), ssh://git@host/org/repo(.git)
-    if re.match(r"^[\w.-]+@[\w.-]+:", url):
-        host_path = url.split(":", 1)[1]
-        parts = host_path.strip("/").split("/")
-    else:
-        u = urlparse(url)
-        parts = u.path.strip("/").split("/")
-    if len(parts) < 2:
-        raise ValueError(f"Cannot parse org/repo from URL: {url}")
-    org, repo = parts[-2], parts[-1]
-    if repo.endswith(".git"):
-        repo = repo[:-4]
-    return org, repo
 
 
 def ask(prompt: str, default="y"):
@@ -84,10 +67,10 @@ def rewrite_symlink(link: Path, old_prefix: str, new_prefix: str):
 
 
 def desired_path(url: str, base_dir: str):
-    org, repo = parse_org_repo_from_url(url)
-    if org == "oca":
-        org = org.upper()
-    return f"{base_dir.rstrip('/')}/{org}/{repo}"
+    _, owner, repo = parse_repository_url(url)
+    if owner == "oca":
+        owner = owner.upper()
+    return f"{base_dir.rstrip('/')}/{owner}/{repo}"
 
 
 def symlink_targets(repo: Path):

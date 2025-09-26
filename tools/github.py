@@ -15,7 +15,7 @@ def _headers(token: Optional[str]) -> dict:
     return h
 
 
-def fetch_branch_zip(
+def fetch_branch_zip(  # noqa: PLR0913
     owner: str,
     repo: str,
     branch: str,

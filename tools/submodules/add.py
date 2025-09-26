@@ -17,7 +17,6 @@ from tools.gitutils import (
 from tools.helpers import (
     desired_path,
     ensure_parent,
-    parse_org_repo_from_url,
     relpath,
     str_to_list,
 )
@@ -26,22 +25,7 @@ from tools.messages import (
     GIT_ADD_SUBMODULE,
     GIT_ADD_SUBMODULE_DESC,
 )
-from tools.utils import human_readable
-
-# def parse_org_repo_from_url(url: str):
-#     # Supports https://host/org/repo(.git), git@host:org/repo(.git), ssh://git@host/org/repo(.git)
-#     if re.match(r"^[\w.-]+@[\w.-]+:", url):
-#         host_path = url.split(":", 1)[1]
-#         parts = host_path.strip("/").split("/")
-#     else:
-#         u = urlparse(url)
-#         parts = u.path.strip("/").split("/")
-#     if len(parts) < 2:
-#         raise ValueError(f"Cannot parse org/repo from URL: {url}")
-#     org, repo = parts[-2], parts[-1]
-#     if repo.endswith(".git"):
-#         repo = repo[:-4]
-#     return org, repo
+from tools.utils import human_readable, parse_repository_url
 
 
 def find_addons(submodule_dir: Path):
@@ -94,7 +78,7 @@ def find_addons(submodule_dir: Path):
     help="Show planned actions only",
 )
 @click.command(name="add")
-def main(
+def main(  # noqa: C901, PLR0915
     url: str,
     branch: str,
     base_dir: str,
@@ -112,14 +96,14 @@ def main(
 
     # Compute target path and name
     try:
-        org, repo_name = parse_org_repo_from_url(url)
+        _, owner, repo_name = parse_repository_url(url)
     except ValueError as e:
         click.echo(f"Error: {e}")
         sys.exit(1)
 
     sub_path_str = desired_path(url, base_dir)
     sub_path = repo / sub_path_str
-    sub_name = name or f"{org}/{repo_name}"
+    sub_name = name or f"{owner}/{repo_name}"
 
     # Plan summary
     click.echo(

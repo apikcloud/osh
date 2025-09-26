@@ -21,7 +21,7 @@ from tools.messages import GIT_PRUNE_SUBMODULES
     is_flag=True,
     default=True,
 )
-def main(no_commit: bool):
+def main(no_commit: bool):  # noqa: C901, PLR0912
     repo = git_top()
     gm = repo / ".gitmodules"
     if not gm.exists():
@@ -83,8 +83,6 @@ def main(no_commit: bool):
     click.echo("\n✅ Unused submodules removed.")
 
     if no_commit:
-        click.echo(
-            "Don't forget to commit: git commit -m 'chore: remove unused submodules'"
-        )
+        click.echo("Don't forget to commit: git commit -m 'chore: remove unused submodules'")
 
     return 0

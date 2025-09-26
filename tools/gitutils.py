@@ -1,5 +1,3 @@
-# Copyright (c) 2018 ACSONE SA/NV
-# License AGPLv3 (https://www.gnu.org/licenses/agpl-3.0-standalone.html)
 import contextlib
 import subprocess
 from pathlib import Path
@@ -150,15 +148,15 @@ def parse_submodules_extended(gitmodules: Path):
     urls = dict(
         (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.url$")
     )
-    brs = dict(
+    branches = dict(
         (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.branch$")
     )
     out = {}
-    for name in set(paths) | set(urls) | set(brs):
+    for name in set(paths) | set(urls) | set(branches):
         out[name] = {
             "path": paths.get(name),
             "url": urls.get(name),
-            "branch": brs.get(name),
+            "branch": branches.get(name),
         }
     return out
 
@@ -175,7 +173,7 @@ def move_with_git(src: Path, dst: Path):
             run(["git", "rm", "-f", "--cached", str(src)])
 
 
-def update_gitignore(
+def update_gitignore(  # noqa: C901
     file_path: Union[str, Path],
     folders: Iterable[str],
     header: str = "# Ignored addons (auto)",

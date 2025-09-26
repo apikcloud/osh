@@ -40,7 +40,7 @@ from tools.utils import human_readable
     default=None,
     help="Old base dir to prune if empty (default: auto-detect, fallback 'third-party')",
 )
-def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_dir: str):
+def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_dir: str):  # noqa: C901, PLR0912, PLR0915
     repo = git_top()
     os.chdir(repo)
 
