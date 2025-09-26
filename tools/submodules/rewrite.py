@@ -18,14 +18,15 @@ from tools.gitutils import (
     submodule_update,
 )
 from tools.helpers import ask, desired_path, is_dir_empty, rewrite_symlink
-from tools.messages import GIT_REWRITE_SUBMODULES
+from tools.messages import GIT_SUBMODULES_REWRITE
+from tools.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
 from tools.utils import human_readable
 
 
 @click.command(name="rewrite")
 @click.option(
     "--base-dir",
-    default=".third-party",
+    default=NEW_SUBMODULES_PATH,
     help="Base directory for rewritten paths (default: .third-party)",
 )
 @click.option("--force", is_flag=True, help="Apply all changes without prompting")
@@ -140,7 +141,7 @@ def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_di
     if not old_base:
         # auto-detect from first path segment of old paths if unique, else fallback
         first_segments = {op.split("/", 1)[0] for (_, _, op, _) in accepted if "/" in op}
-        old_base = first_segments.pop() if len(first_segments) == 1 else "third-party"
+        old_base = first_segments.pop() if len(first_segments) == 1 else OLD_SUBMODULES_PATH
 
     old_base_path = repo / old_base
     if is_dir_empty(old_base_path):
@@ -158,7 +159,7 @@ def main(base_dir: str, force: bool, dry_run: bool, no_commit: bool, old_base_di
             "Modified submodules:",
         ]
         lines += [f"- {name}: {oldp} -> {newp}" for (name, _, oldp, newp) in accepted]
-        commit(GIT_REWRITE_SUBMODULES, description=human_readable(lines, sep="\n"))
+        commit(GIT_SUBMODULES_REWRITE, description=human_readable(lines, sep="\n"))
 
         click.echo("Changes committed.")
     else:

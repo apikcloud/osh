@@ -1,9 +1,9 @@
-GIT_NEW_ADDONS = "chore: new addons"
-GIT_IGNORED_ADDONS = "chore: ignored addons"
-GIT_REWRITE_SUBMODULES = "chore: rewrite submodule paths based on remote URL"
-GIT_PRUNE_SUBMODULES = "chore: remove unused submodules"
-GIT_ADD_SUBMODULE = "chore: add submodule {name}"
-GIT_ADD_SUBMODULE_DESC = """
+GIT_ADDONS_NEW = "chore: new addons"
+GIT_ADDONS_IGNORED = "chore: ignored addons"
+GIT_SUBMODULES_REWRITE = "chore: rewrite submodule paths based on remote URL"
+GIT_SUBMODULES_PRUNE = "chore: remove unused submodules"
+GIT_SUBMODULE_ADD = "chore: add submodule {name}"
+GIT_SUBMODULE_ADD_DESC = """
 - url: {url}
 - branch: {branch}
 - path: {path}

@@ -7,44 +7,14 @@ import click
 from libcst.display import dump
 
 from tools.helpers import find_addons_extended, get_manifest_path
+from tools.settings import (
+    BLACK_MODE,
+    DEFAULT_VALUES,
+    FORCED_KEYS,
+    HEADERS,
+    REPLACEMENTS,
+)
 from tools.utils import clean_string
-
-MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
-
-BLACK_MODE = black.FileMode()
-REPLACEMENTS = {
-    "Frederic Grall": "fredericgrall",
-    "Michel GUIHENEUF": "apik-mgu",
-    "rth-apik": "Romathi",
-    "Romain THIEUW": "Romathi",
-    "Aurelien ROY": "royaurelien",
-}
-
-
-FORCED_KEYS = ["author", "website", "license"]
-
-HEADERS = [
-    "# pylint: disable=W0104",
-    "# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).",
-]
-
-DEFAULT_VALUES = {
-    "name": None,
-    "summary": None,
-    "category": "Technical",
-    "author": "Apik",
-    "maintainers": [],
-    "website": "https://apik.cloud",
-    "version": None,
-    "license": "LGPL-3",
-    "depends": [],
-    "data": [],
-    "demo": [],
-    "assets": {},
-    "installable": True,
-    "application": False,
-    "auto_install": False,
-}
 
 
 def format_manifest(data: dict) -> str:

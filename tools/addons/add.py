@@ -6,7 +6,7 @@ import click
 
 from tools.gitutils import commit, git_add, git_top, list_available_addons
 from tools.helpers import find_addons_extended, relpath, str_to_list
-from tools.messages import GIT_NEW_ADDONS
+from tools.messages import GIT_ADDONS_NEW
 
 
 @click.command("add")
@@ -47,4 +47,4 @@ def main(addons_list: str, no_commit: bool):
         git_add([name])
 
     if created_links and not no_commit:
-        commit(GIT_NEW_ADDONS, description="\n".join(created_links), skip_hook=True)
+        commit(GIT_ADDONS_NEW, description="\n".join(created_links), skip_hook=True)

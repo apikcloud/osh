@@ -12,7 +12,8 @@ from tools.gitutils import (
     submodule_deinit,
 )
 from tools.helpers import symlink_targets
-from tools.messages import GIT_PRUNE_SUBMODULES
+from tools.messages import GIT_SUBMODULES_PRUNE
+from tools.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
 
 
 @click.command(name="prune")
@@ -65,7 +66,7 @@ def main(no_commit: bool):  # noqa: C901, PLR0912
             click.echo(f"[cleanup] removing {moddir}")
             shutil.rmtree(str(moddir))
 
-    for path in ["third-party", ".third-party"]:
+    for path in [OLD_SUBMODULES_PATH, NEW_SUBMODULES_PATH]:
         old_base_path = repo / path
 
         if old_base_path.exists():
@@ -78,7 +79,7 @@ def main(no_commit: bool):  # noqa: C901, PLR0912
     # TODO: improve commit functionality...
     if not no_commit:
         git_add_all()
-        commit(GIT_PRUNE_SUBMODULES)
+        commit(GIT_SUBMODULES_PRUNE)
 
     click.echo("\n✅ Unused submodules removed.")
 

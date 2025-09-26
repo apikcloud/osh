@@ -5,6 +5,7 @@ import shutil
 import click
 
 from tools.gitutils import git_reset_hard, git_top, parse_submodules, submodule_update
+from tools.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
 
 
 @click.command(name="clean")
@@ -25,7 +26,7 @@ def main(reset: bool):
         click.echo("No submodules found.")
         return 0
 
-    for path in ["third-party", ".third-party"]:
+    for path in [OLD_SUBMODULES_PATH, NEW_SUBMODULES_PATH]:
         old_base_path = repo / path
 
         if old_base_path.exists():

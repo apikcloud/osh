@@ -11,7 +11,7 @@ from tools.compat import Optional
 from tools.github import fetch_branch_zip
 from tools.gitutils import commit, git_add, git_top, update_gitignore
 from tools.helpers import find_addons, str_to_list
-from tools.messages import GIT_IGNORED_ADDONS
+from tools.messages import GIT_ADDONS_IGNORED
 from tools.utils import parse_repository_url
 
 logging.basicConfig(level=logging.INFO)
@@ -71,4 +71,4 @@ def main(url: str, branch: str, token: Optional[str] = None, addons_list: Option
         logging.info(f"Addons added ({len(new_addons)}): {', '.join(new_addons)}")
         update_gitignore(gitignore, new_addons)
         git_add([gitignore])
-        commit(GIT_IGNORED_ADDONS)
+        commit(GIT_ADDONS_IGNORED)

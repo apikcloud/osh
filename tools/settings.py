@@ -1,0 +1,41 @@
+import black
+
+NEW_SUBMODULES_PATH = ".third-party"
+OLD_SUBMODULES_PATH = "third-party"
+
+MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py", "__terp__.py")
+
+BLACK_MODE = black.FileMode()
+REPLACEMENTS = {
+    "Frederic Grall": "fredericgrall",
+    "Michel GUIHENEUF": "apik-mgu",
+    "rth-apik": "Romathi",
+    "Romain THIEUW": "Romathi",
+    "Aurelien ROY": "royaurelien",
+}
+
+
+FORCED_KEYS = ["author", "website", "license"]
+
+HEADERS = [
+    "# pylint: disable=W0104",
+    "# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).",
+]
+
+DEFAULT_VALUES = {
+    "name": None,
+    "summary": None,
+    "category": "Technical",
+    "author": "Apik",
+    "maintainers": [],
+    "website": "https://apik.cloud",
+    "version": None,
+    "license": "LGPL-3",
+    "depends": [],
+    "data": [],
+    "demo": [],
+    "assets": {},
+    "installable": True,
+    "application": False,
+    "auto_install": False,
+}

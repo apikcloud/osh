@@ -22,9 +22,10 @@ from tools.helpers import (
 )
 from tools.messages import (
     ADD_SUBMODULES_PLAN,
-    GIT_ADD_SUBMODULE,
-    GIT_ADD_SUBMODULE_DESC,
+    GIT_SUBMODULE_ADD,
+    GIT_SUBMODULE_ADD_DESC,
 )
+from tools.settings import NEW_SUBMODULES_PATH
 from tools.utils import human_readable, parse_repository_url
 
 
@@ -51,7 +52,7 @@ def find_addons(submodule_dir: Path):
 )
 @click.option(
     "--base-dir",
-    default=".third-party",
+    default=NEW_SUBMODULES_PATH,
     help="Base dir for submodules (default: .third-party)",
 )
 @click.option(
@@ -189,8 +190,8 @@ def main(  # noqa: C901, PLR0915
 
     if not no_commit:
         commit(
-            GIT_ADD_SUBMODULE.format(name=sub_name),
-            description=GIT_ADD_SUBMODULE_DESC.format(
+            GIT_SUBMODULE_ADD.format(name=sub_name),
+            description=GIT_SUBMODULE_ADD_DESC.format(
                 url=url,
                 branch=branch,
                 path=sub_path_str,
