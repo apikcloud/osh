@@ -41,3 +41,16 @@ DEFAULT_VALUES = {
     "application": False,
     "auto_install": False,
 }
+
+
+REPO_DOCKER_IMAGES = "apikcloud/images"
+REPO_DOCKER_FILE = "tags.json"
+ODOO_IMAGES_URL = (
+    f"https://raw.githubusercontent.com/{REPO_DOCKER_IMAGES}/refs/heads/main/{REPO_DOCKER_FILE}"
+)
+
+DEFAULT_TIMEOUT = 60
+DOCKER_COLLECTIONS = ["production", "ofleet"]
+DOCKER_RECOMMENDED_REGISTRIES = ["apik"]
+DOCKER_DEPRECATED_REGISTRIES = ["ofleet", "loginline"]
+DOCKER_WARN_REGISTRIES = ["odoo"]

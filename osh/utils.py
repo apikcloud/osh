@@ -2,9 +2,11 @@ import logging
 import os
 import re
 import subprocess
+from datetime import date
+from pathlib import Path
 from urllib.parse import urlparse
 
-from osh.compat import Any, Optional, Tuple, Union
+from osh.compat import Any, List, Optional, Tuple, Union
 from osh.exceptions import ScriptNotFound
 
 
@@ -155,3 +157,36 @@ def deep_visit(obj, prefix=""):
             yield from deep_visit(v, f"{prefix}[{i}]")
     else:
         yield prefix, obj
+
+
+def filter_and_clean(items: List[str]) -> set:
+    """Filter and clean text file"""
+
+    def clean(item):
+        if "#" not in item:
+            return item.strip()
+
+        return item.split("#")[0].strip()
+
+    items = list(filter(lambda item: item and not item.startswith("#"), items))
+
+    return set(map(clean, items))
+
+
+def parse_text_file(content: str) -> set:
+    """Parse Python text file"""
+
+    return filter_and_clean(content.splitlines())
+
+
+def read_and_parse(path: Path):
+    return sorted(parse_text_file(path.read_text()))
+
+
+def date_from_string(raw: str) -> date:
+    if len(raw) != 8:
+        raise ValueError()
+
+    parts = [int(raw[:4]), int(raw[4:6]), int(raw[-2:])]
+
+    return date(*parts)

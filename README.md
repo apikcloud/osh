@@ -1,110 +1,116 @@
 # osh - Odoo Scripts & Helpers
 
-osh rassemble des utilitaires en ligne de commande concus pour industrialiser la gestion
-des depots Odoo chez Apik. Le paquet fournit des scripts coherents pour piloter les
-sous-modules Git, generer la documentation des addons et normaliser les manifestes,
-afin de garder des projets multi-depots sous controle.
+osh bundles a set of opinionated command-line utilities used at Apik to keep complex Odoo
+multi-repository projects in check. It streamlines Git submodule management, generates addon
+inventories, and normalizes Odoo manifests so teams can focus on delivering features instead of
+chasing repository drift.
 
-## Pourquoi utiliser osh ?
+## Why use osh?
+- Automates adding, auditing, and pruning Git submodules across multiple Odoo repositories.
+- Builds addon lists and tables directly from manifests for documentation or reporting.
+- Normalizes `__manifest__.py` files while preserving comments and project-specific tweaks.
+- Ships reproducible scripts that integrate well with CI pipelines and project bootstrap tooling.
 
-- Automatise l ajout, la verification et le nettoyage des sous-modules Git.
-- Centralise la generation de listes et de tableaux d addons directement depuis les manifestes.
-- Normalise les manifestes Odoo (en-tetes, mainteneurs, options) tout en preservant les commentaires.
-- Fournit des scripts reproductibles pour les pipelines CI et les scripts de bootstrap projet.
+## Requirements
+- Python 3.8+ (Python 3.7 is the minimum supported version).
+- Git with submodule support enabled.
+- A POSIX-compatible shell; examples below assume `bash`.
 
 ## Installation
 
-Prerequis : Python 3.8+, Git et un shell POSIX (bash) disponible sur la machine.
-
-### Depuis GitHub (recommande)
-
+### From GitHub (recommended)
 ```bash
 pip install git+https://github.com/apikcloud/osh.git
 ```
 
-### Developpement local
-
+### Local development checkout
 ```bash
 git clone https://github.com/apikcloud/osh.git
 cd osh
 pip install -e .
 ```
 
-## Prise en main rapide
-
+## Quick start
 ```bash
-# Ajouter un sous-module OCA et creer des liens symboliques pour chaque addon
+# Add an OCA submodule and create symlinks for each addon it contains
 osh-sub-add https://github.com/OCA/server-ux.git -b 18.0 --auto-symlinks
 
-# Inventorier tous les addons disponibles dans les sous-modules
+# List every addon discovered in the configured submodules
 osh-addons-list --format json > addons.json
 
-# Reformatter tous les manifestes __manifest__.py d un dossier addons
+# Reformat every __manifest__.py under ./addons and exit non-zero on pending changes
 osh-man-rewrite --addons-dir ./addons --check
 ```
 
-## Commandes principales
-
-### Gestion des sous-modules
-
-- `osh-sub-add URL -b BRANCHE [options]` : ajoute un sous-module dans `.third-party/<ORG>/<REPO>` et
-  peut creer des symlinks vers les addons du depot. Options clefs :
-  - `--auto-symlinks` pour symlinker automatiquement chaque addon detecte.
-  - `--addons` pour specifier une liste d addons a lier.
-  - `--dry-run` pour visualiser le plan sans executer.
-  - `--no-commit` pour laisser les modifications en staging.
-- `osh-sub-check` : verifie que tous les sous-modules residuent sous `.third-party/` et qu au moins un
-  lien symbolique pointe vers chacun d eux.
-- `osh-sub-rewrite [options]` : reecrit les chemins des sous-modules selon leur URL, deplace les dossiers,
-  met a jour `.gitmodules` et corrige les symlinks. Ajoutez `--dry-run` pour inspecter les changements,
-  `--yes` pour tout accepter et `--no-commit` pour revoir le commit propose.
-- `osh-sub-prune` : detecte les sous-modules sans symlinks associes et propose de les supprimer proprement
-  (deinit Git, suppression des traces sous `.git/modules`).
-- `osh-sub-clean [--reset]` : supprime les dossiers `third-party` ou `.third-party` vides puis relance
-  `git submodule update --init --recursive`. L option `--reset` effectue un `git reset --hard`
-  avant le nettoyage.
-- `osh-sub-flatten [PATH]` : remplace les symlinks trouves a la racine de `PATH` par le contenu reel du
-  depot cible (copie recursive). Pratique pour figer un livrable sans liens symboliques.
-
-### Inventaire des addons
-
-- `osh-addons-list [--format text|json|csv] [--only nom] [--init-missing]` : liste tous les addons
-  detectes dans les sous-modules, avec le chemin relatif, l URL et la branche configures. Le format
-  `json` ou `csv` facilite l exploitation automatique.
-- `osh-addons-table [options]` : remplace les marqueurs `[//]: # (addons)` dans un README par une table
-  Markdown construite depuis les manifestes. Options :
-  - `--addons-dir` pour definir l emplacement des addons (defaut `.`).
-  - `--readme-path` pour cibler un autre fichier markdown.
-  - `--commit/--no-commit` pour controler l envoi d un commit automatique.
-
-### Normalisation des manifestes Odoo
-
-- `osh-man-rewrite` : applique un transformateur LibCST qui corrige les fautes de clefs (`mainteners` ->
-  `maintainers`), remplace les noms par les comptes GitHub, ordonne les dependances, assure la presence
-  des en-tetes standards et peut fonctionner en `--dry` (lecture seule) ou `--check` (code de retour 1 si
-  un fichier devrait changer).
-- `osh-man-fix` : outil historique base sur Black pour reformater un manifeste individuel. Il reste utile
-  pour experimenter mais `osh-man-rewrite` est recommande dans les workflows modernes.
-
-## Integrations et bonnes pratiques
-
-- Ajoutez `osh-man-rewrite --check` dans vos pipelines CI pour garantir des manifestes homogenes.
-- Combinez `osh-addons-list` avec `jq` ou `csvkit` pour controler l inventaire des modules.
-- Utilisez `osh-sub-rewrite --dry-run` avant de partager un plan de migration de sous-modules.
-
-## Support et contributions
-
-Les scripts sont fournis tels quels par l equipe Apik. Les contributions sont les bienvenues via
-pull request sur le depot GitHub. Pour developper :
-
+You can also access the same commands through the unified CLI:
 ```bash
-pip install -e .[dev]  # optionnel : ajoutez vos dependances de dev
+osh sub add https://github.com/OCA/server-ux.git -b 18.0 --auto-symlinks
+osh addons list --format table
+osh manifest rewrite --addons-dir ./addons --check
 ```
 
-Puis lancez les commandes directement depuis votre environnement virtuel. Publiez vos correctifs avec
-un resume clair et ajoutez des tests ou des fragments de changelog lorsque c est pertinent.
+## CLI overview
+The package exposes several entry points (available as standalone executables or via
+`osh <group> <command>`):
 
-## Licence
+### Submodule management (`osh sub ...`)
+- `osh-sub-add URL -b BRANCH [options]`: clones an Odoo addon repository into `.third-party/<ORG>/<REPO>`,
+  optionally wiring symlinks to the addons it ships. Useful flags include `--auto-symlinks`,
+  `--addons` to restrict the selection, `--dry-run`, and `--no-commit`.
+- `osh-sub-check`: ensures every submodule lives under `.third-party/` and that at least one symlink points
+  to it.
+- `osh-sub-rewrite`: realigns submodule paths with their canonical origin, updates `.gitmodules`, moves
+  directories, and refreshes symlinks. Combine with `--dry-run`, `--yes`, or `--no-commit` depending on
+  your review process.
+- `osh-sub-prune`: detects submodules that are no longer referenced by symlinks and guides you through a
+  clean removal, including `git submodule deinit` and cache cleanup.
+- `osh-sub-clean [--reset]`: removes empty `.third-party` directories, optionally performs a
+  `git reset --hard`, and re-initializes submodules.
+- `osh-sub-flatten [PATH]`: replaces symlinks under `PATH` with the actual addon sources, which is handy
+  when shipping tarballs without symlinks.
 
-Ce projet est publie sous licence AGPL-3.0-only. Consultez le fichier `LICENSE` ou
-<https://www.gnu.org/licenses/agpl-3.0.html> pour plus de details.
+### Addon inventory (`osh addons ...`)
+- `osh-addons-list`: scans configured submodules and prints addon metadata in `text`, `json`, or `csv`
+  format. Use `--only NAME` to filter, or `--init-missing` to bootstrap missing manifests.
+- `osh-addons-table`: replaces `[//]: # (addons)` markers inside Markdown documents with a generated table
+  driven by manifests. Options include `--addons-dir`, `--readme-path`, and commit toggles.
+- `osh-addons-add` and `osh-addons-download`: utility commands to pull addon archives and populate local
+  directories.
+
+### Manifest normalization (`osh manifest ...`)
+- `osh-man-rewrite`: applies LibCST-powered transformations to fix typos, enforce maintainers, order
+  dependencies, and add missing headers. Supports `--dry` for read-only runs and `--check` for CI.
+- `osh-man-check`: lightweight manifest validation that reports style or content issues.
+- `osh-man-fix`: legacy formatter kept for ad-hoc adjustments when experimenting.
+
+### Project helpers (`osh project ...`)
+- `osh-pro-check`: runs consistency checks across the current project tree, surfacing missing
+  configuration or drift that would make CI fail.
+
+Refer to the individual command help (`--help`) for full option lists.
+
+## Typical workflows and best practices
+- Add `osh-man-rewrite --check` to your CI to guarantee consistent manifests before merging.
+- Combine `osh-addons-list` with tools like `jq` or `csvkit` to audit addon inventories pulled via
+  submodules.
+- Run `osh-sub-rewrite --dry-run` prior to reorganizing submodules so you can share the migration plan
+  with teammates.
+- Use `osh-sub-flatten` when preparing deliverables for environments that cannot handle symlinks.
+
+## Development
+1. Create and activate a virtual environment.
+2. Install development dependencies: `pip install -e .[dev]` (or `make install`).
+3. Run quality checks before opening a pull request:
+   - `make lint` to execute Ruff.
+   - `make typecheck` to run Pyright (soft-fail by design).
+   - `make test` to execute the pytest suite.
+4. Build artifacts locally with `make build` when you need wheels or source distributions.
+
+## Contributing and support
+Issues and pull requests are welcome on GitHub. Please include clear reproduction steps, add tests or
+changelog fragments when relevant, and describe the impact on downstream projects so reviews can move
+quickly. The scripts are provided as-is by the Apik team; feel free to fork if you need bespoke behavior.
+
+## License
+osh is distributed under the AGPL-3.0-only license. See `LICENSE` or visit
+https://www.gnu.org/licenses/agpl-3.0.html for the full text.

@@ -2,6 +2,7 @@ import click
 
 from osh.addons import addons
 from osh.manifest import manifest
+from osh.project import project
 from osh.submodules import submodules
 
 
@@ -13,3 +14,4 @@ def main():
 main.add_command(addons)
 main.add_command(manifest)
 main.add_command(submodules)
+main.add_command(project)
