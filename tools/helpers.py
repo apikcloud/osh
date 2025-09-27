@@ -6,6 +6,7 @@ from pathlib import Path
 
 import libcst as cst
 
+from tools.compat import Optional
 from tools.exceptions import NoManifestFound
 from tools.settings import MANIFEST_NAMES
 from tools.utils import parse_repository_url
@@ -93,15 +94,31 @@ def parse_manifest_cst(raw: str) -> cst.CSTNode:
     return cst.parse_module(raw)
 
 
-def read_manifest(path: str) -> dict:
+def read_manifest(path: str) -> cst.CSTNode:
     manifest_path = get_manifest_path(path)
     if not manifest_path:
         raise NoManifestFound(f"no Odoo manifest found in {path}")
     with open(manifest_path) as mf:
-        return parse_manifest(mf.read())
+        return parse_manifest_cst(mf.read())
 
 
-def find_addons_extended(addons_dir: str, installable_only: bool = False):
+def load_manifest(path: Path) -> dict:
+    """
+    Parse an Odoo manifest file,
+    then safely convert it to a Python dict via ast.literal_eval.
+    """
+    source = path.read_text(encoding="utf-8")
+
+    # Convert the exact dict literal slice to a Python object (safe: literals only).
+    manifest = ast.literal_eval(source)
+    if not isinstance(manifest, dict):
+        raise ValueError("Parsed manifest is not a dict after literal evaluation.")
+    return manifest
+
+
+def find_addons_extended(
+    addons_dir: str, installable_only: bool = False, names: Optional[list] = None
+):
     """yield (addon_name, addon_dir, manifest)"""
     for name in os.listdir(addons_dir):
         path = os.path.join(addons_dir, name)
@@ -111,4 +128,22 @@ def find_addons_extended(addons_dir: str, installable_only: bool = False):
             continue
         if installable_only and not manifest.get("installable", True):
             continue
+
+        if names and name not in names:
+            continue
+
         yield name, path, manifest
+
+
+def find_manifests(path: str, names: Optional[list] = None):
+    for name in os.listdir(path):
+        addon_path = os.path.join(path, name)
+        try:
+            manifest_path = get_manifest_path(addon_path)
+        except NoManifestFound:
+            continue
+
+        if names and name not in names:
+            continue
+
+        yield manifest_path

@@ -30,7 +30,11 @@ def fetch_branch_zip(  # noqa: PLR0913
     url = f"{GITHUB_API}/repos/{owner}/{repo}/zipball/{branch}"
     zip_path = os.path.join(out_dir, f"{repo}-{branch}.zip")
 
-    with requests.get(url, headers=_headers(token), stream=True, timeout=300) as r:
+    with requests.get(
+        url,
+        headers=_headers(token),
+        stream=True,
+    ) as r:
         r.raise_for_status()
         with open(zip_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=1024 * 1024):

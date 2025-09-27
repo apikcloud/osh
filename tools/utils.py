@@ -139,3 +139,19 @@ def run_script(filepath: str, *args: str) -> str:
 
     result = subprocess.run([path, *args], capture_output=True, text=True, check=True)
     return result.stdout
+
+
+def deep_visit(obj, prefix=""):
+    """
+    Yield flattened (path, value) pairs for recursive inspection.
+    Example: 'assets.web.assets_backend[0]' -> '/module/static/...'
+    """
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            key = str(k)
+            yield from deep_visit(v, f"{prefix}.{key}" if prefix else key)
+    elif isinstance(obj, (list, tuple)):
+        for i, v in enumerate(obj):
+            yield from deep_visit(v, f"{prefix}[{i}]")
+    else:
+        yield prefix, obj
