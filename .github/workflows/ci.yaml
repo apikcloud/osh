@@ -1,9 +1,11 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
+    types: [closed] # déclenché à la fermeture d'une PR (ajoutez un if au job pour n'exécuter que si merged)
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   test:

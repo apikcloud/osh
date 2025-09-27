@@ -35,6 +35,8 @@ dependencies = [
     "fixit>2.0",  
     "black",
 ]
+
+
 requires-python = ">=3.7"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -94,5 +96,39 @@ pythonVersion = "3.7"
 reportMissingTypeStubs = false
 
 [tool.pytest.ini_options]
+addopts = "-q --strict-markers"
 testpaths = ["tests"]
-addopts = "-q"
+
+[tool.coverage.run]
+source = ["osh"]
+branch = true
+parallel = true
+omit = [
+  "*/__main__.py",
+  "*/_version.py",
+  "*/tests/*",
+]
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = true
+fail_under = 80
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+  "raise NotImplementedError",
+]
+
+[tool.coverage.paths]
+source = [
+  "osh",
+  ".venv/lib/python*/site-packages/osh",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "coverage[toml]",
+]
