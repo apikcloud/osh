@@ -1,7 +1,6 @@
 import re
 from dataclasses import dataclass
 from datetime import date
-from typing import Optional
 
 from osh.compat import Optional
 from osh.exceptions import (

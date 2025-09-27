@@ -49,7 +49,7 @@ var=1
 @click.argument("path", default=".")
 @click.option("--addons")
 def main(path: str, addons: Optional[str] = None):
-    # path = "/home/aroy/dev/repo/odoo-gaiago/third-party/apik-accounting/apik_import_fec/__manifest__.py"
+    # path = "/home/aroy/dev/repo/odoo-gaiago/third-party/apik-accounting/apik_import_fec/__manifest__.py" # noqa: E501
     # path = "/home/aroy/dev/packages/osh"
 
     name = "Paul"
@@ -72,7 +72,7 @@ def main(path: str, addons: Optional[str] = None):
     options = {}
     if addons:
         options["names"] = str_to_list(addons)
-    for name, _, manifest in find_addons_extended(path, **options):
+    for name, _, manifest in find_addons_extended(path, **options):  # noqa: B007
         click.echo(name)
         print("--------------")
         # print(dump(manifest))

@@ -98,7 +98,7 @@ def main(addons_dir):
 
         continue
 
-        changed, manifest = process_manifest(manifest)
+        changed, manifest = process_manifest(manifest)  # noqa: PLW2901
 
         if changed:
             filepath = os.path.join(addons_dir, get_manifest_path(name))

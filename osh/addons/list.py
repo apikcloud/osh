@@ -31,7 +31,7 @@ from osh.helpers import find_addons
     multiple=True,
     help="Limit to these submodule names (as in .gitmodules)",
 )
-def main(format: str, init: bool, submodules: tuple):
+def main(format: str, init: bool, submodules: tuple):  # noqa: C901, PLR0912
     repo = git_top()
     gm = repo / ".gitmodules"
     if not gm.exists():

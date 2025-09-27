@@ -6,7 +6,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
 
-from osh.compat import Any, List, Optional, Tuple, Union
+from osh.compat import Any, List, Optional, Tuple
 from osh.exceptions import ScriptNotFound
 
 
@@ -88,7 +88,7 @@ def parse_repository_url(url: str) -> Tuple[str, str, str]:
     host, path = get_host_and_path(url)
     parts = path.split("/")
 
-    if len(parts) < 2:
+    if len(parts) < 2:  # noqa: PLR2004
         raise ValueError(f"Malformed url (missing owner/repo): {url}")
     return extract_data(parts)
 
@@ -184,7 +184,7 @@ def read_and_parse(path: Path):
 
 
 def date_from_string(raw: str) -> date:
-    if len(raw) != 8:
+    if len(raw) != 8:  # noqa: PLR2004
         raise ValueError()
 
     parts = [int(raw[:4]), int(raw[4:6]), int(raw[-2:])]

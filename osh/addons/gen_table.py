@@ -52,7 +52,7 @@ def render_maintainers(manifest):
     return " ".join(
         [
             f"<a href='https://github.com/{x}'>"
-            f"<img src='https://github.com/{x}.png' width='32' height='32' style='border-radius:50%;' alt='{x}'/>"
+            f"<img src='https://github.com/{x}.png' width='32' height='32' style='border-radius:50%;' alt='{x}'/>"  # noqa: E501
             "</a>"
             for x in maintainers
         ]
@@ -112,7 +112,7 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
     type=click.Path(dir_okay=True, file_okay=False, exists=True),
     help="Directory containing several addons",
 )
-def main(commit, readme_path, addons_dir):
+def main(commit, readme_path, addons_dir):  # noqa: C901
     if not os.path.isfile(readme_path):
         _logger.warning("%s not found", readme_path)
         return

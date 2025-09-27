@@ -38,7 +38,7 @@ class UnusualRegistryWarning(UserWarning):
 
 def warn_deprecated_registry(name):
     warnings.warn(
-        f"You should use one of these registries ({', '.join(DOCKER_RECOMMENDED_REGISTRIES)}) as a replacement for '{name}'.",
+        f"You should use one of these registries ({', '.join(DOCKER_RECOMMENDED_REGISTRIES)}) as a replacement for '{name}'.",  # noqa: E501
         DeprecatedRegistryWarning,
         stacklevel=3,
     )

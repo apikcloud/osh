@@ -33,6 +33,7 @@ dependencies = [
     "libcst==0.4.*; python_version<'3.8'",
     "rich>=13.0",  
     "fixit>2.0",  
+    "black",
 ]
 requires-python = ">=3.7"
 classifiers = [
@@ -60,7 +61,6 @@ osh-addons-list = "osh.addons.list:main"
 osh-addons-table = "osh.addons.gen_table:main"
 osh-man-check = "osh.manifest.check:main"
 osh-man-fix = "osh.manifest.fix:main"
-osh-man-rewrite = "osh.manifest.parser:main"
 osh-pro-check = "osh.project.check:main"
 osh-pro-update = "osh.project.update:main"
 osh-sub-add = "osh.submodules.add:main"
