@@ -1,11 +1,11 @@
 import click
 
-from tools.submodules.add import main as add
-from tools.submodules.check import main as check
-from tools.submodules.clean import main as clean
-from tools.submodules.prune import main as prune
-from tools.submodules.rewrite import main as rewrite
-from tools.utils import run_script
+from osh.submodules.add import main as add
+from osh.submodules.check import main as check
+from osh.submodules.clean import main as clean
+from osh.submodules.prune import main as prune
+from osh.submodules.rewrite import main as rewrite
+from osh.utils import run_script
 
 
 @click.command()

@@ -6,10 +6,10 @@ from pathlib import Path
 
 import libcst as cst
 
-from tools.compat import Optional
-from tools.exceptions import NoManifestFound
-from tools.settings import MANIFEST_NAMES
-from tools.utils import parse_repository_url
+from osh.compat import Optional, Union
+from osh.exceptions import NoManifestFound
+from osh.settings import MANIFEST_NAMES
+from osh.utils import parse_repository_url
 
 
 def ask(prompt: str, default="y"):
@@ -117,7 +117,7 @@ def load_manifest(path: Path) -> dict:
 
 
 def find_addons_extended(
-    addons_dir: str, installable_only: bool = False, names: Optional[list] = None
+    addons_dir: Union[str, Path], installable_only: bool = False, names: Optional[list] = None
 ):
     """yield (addon_name, addon_dir, manifest)"""
     for name in os.listdir(addons_dir):

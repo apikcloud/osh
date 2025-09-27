@@ -4,8 +4,8 @@ import shutil
 
 import click
 
-from tools.gitutils import git_reset_hard, git_top, parse_submodules, submodule_update
-from tools.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
+from osh.gitutils import git_reset_hard, git_top, parse_submodules, submodule_update
+from osh.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
 
 
 @click.command(name="clean")

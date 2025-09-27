@@ -23,7 +23,7 @@ import re
 
 import click
 
-from tools.gitutils import commit_if_needed
+from osh.gitutils import commit_if_needed
 
 _logger = logging.getLogger(__name__)
 

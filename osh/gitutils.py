@@ -2,10 +2,10 @@ import contextlib
 import subprocess
 from pathlib import Path
 
-from tools.compat import Iterable, Optional, Union
-from tools.exceptions import NoGitRepository
-from tools.helpers import ensure_parent, find_addons_extended
-from tools.utils import human_readable, run
+from osh.compat import Iterable, Optional, Union
+from osh.exceptions import NoGitRepository
+from osh.helpers import ensure_parent, find_addons_extended
+from osh.utils import human_readable, run
 
 
 def commit_if_needed(paths, message, add=True):

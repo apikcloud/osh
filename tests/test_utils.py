@@ -1,4 +1,4 @@
-from tools.utils import human_readable, parse_repository_url, str_to_list
+from osh.utils import human_readable, parse_repository_url, str_to_list
 
 data = [
     {

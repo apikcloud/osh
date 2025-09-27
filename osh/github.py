@@ -3,8 +3,8 @@ import zipfile
 
 import requests
 
-from tools.compat import Optional, Tuple
-from tools.settings import GITHUB_API
+from osh.compat import Optional, Tuple
+from osh.settings import GITHUB_API
 
 
 def _headers(token: Optional[str]) -> dict:

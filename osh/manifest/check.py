@@ -4,11 +4,11 @@
 import click
 import libcst as cst
 
-from tools.compat import Optional
-from tools.helpers import find_addons_extended, find_manifests
-from tools.parser import TypingCollector
-from tools.rules.__main__ import run_rules
-from tools.utils import human_readable, str_to_list
+from osh.compat import Optional
+from osh.helpers import find_addons_extended, find_manifests
+from osh.parser import TypingCollector
+from osh.rules.__main__ import run_rules
+from osh.utils import human_readable, str_to_list
 
 to_read = """
 # -*- coding: utf-8 -*-

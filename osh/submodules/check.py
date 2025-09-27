@@ -2,8 +2,8 @@
 
 import click
 
-from tools.gitutils import git_top, parse_submodules
-from tools.helpers import symlink_targets
+from osh.gitutils import git_top, parse_submodules
+from osh.helpers import symlink_targets
 
 
 @click.command(name="check")

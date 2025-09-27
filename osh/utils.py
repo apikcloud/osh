@@ -4,8 +4,8 @@ import re
 import subprocess
 from urllib.parse import urlparse
 
-from tools.compat import Any, Optional, Tuple, Union
-from tools.exceptions import ScriptNotFound
+from osh.compat import Any, Optional, Tuple, Union
+from osh.exceptions import ScriptNotFound
 
 
 def get_exec_dir():

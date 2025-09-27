@@ -1,8 +1,8 @@
 import click
 
-from tools.addons import addons
-from tools.manifest import manifest
-from tools.submodules import submodules
+from osh.addons import addons
+from osh.manifest import manifest
+from osh.submodules import submodules
 
 
 @click.group()

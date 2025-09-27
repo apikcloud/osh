@@ -7,8 +7,8 @@ import sys
 
 import click
 
-from tools.gitutils import git_top, parse_submodules_extended, submodule_update
-from tools.helpers import find_addons
+from osh.gitutils import git_top, parse_submodules_extended, submodule_update
+from osh.helpers import find_addons
 
 
 @click.command(name="list")

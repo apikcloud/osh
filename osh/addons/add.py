@@ -4,14 +4,14 @@ import os
 
 import click
 
-from tools.gitutils import commit, git_add, git_top, list_available_addons
-from tools.helpers import find_addons_extended, relpath
-from tools.messages import GIT_ADDONS_NEW
-from tools.utils import str_to_list
+from osh.gitutils import commit, git_add, git_top, list_available_addons
+from osh.helpers import find_addons_extended, relpath
+from osh.messages import GIT_ADDONS_NEW
+from osh.utils import str_to_list
 
 
 @click.command("add")
-@click.argument("addons", "addons_list")
+@click.argument("addons_list")
 @click.option("--no-commit", is_flag=True)
 def main(addons_list: str, no_commit: bool):
     repo = git_top()

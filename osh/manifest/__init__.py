@@ -1,8 +1,8 @@
 import click
 
-from tools.manifest.check import main as check
-from tools.manifest.fix import main as fix
-from tools.manifest.parser import main as parser
+from osh.manifest.check import main as check
+from osh.manifest.fix import main as fix
+from osh.manifest.parser import main as parser
 
 
 @click.group()

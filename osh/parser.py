@@ -1,7 +1,7 @@
 import libcst as cst
 import libcst.matchers as m
 
-from tools.compat import Any, Optional
+from osh.compat import Any, Optional
 
 
 def _decode_string(node: cst.SimpleString) -> str:

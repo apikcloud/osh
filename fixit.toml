@@ -1,2 +1,2 @@
 [tool.fixit]
-enable = [".tools.rules.examples", ".tools.rules.manifest"]
+enable = [".osh.rules"]

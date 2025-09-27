@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 
-from tools.gitutils import (
+from osh.gitutils import (
     add_submodule,
     commit,
     git_add,
@@ -14,18 +14,18 @@ from tools.gitutils import (
     submodule_sync,
     submodule_update,
 )
-from tools.helpers import (
+from osh.helpers import (
     desired_path,
     ensure_parent,
     relpath,
 )
-from tools.messages import (
+from osh.messages import (
     ADD_SUBMODULES_PLAN,
     GIT_SUBMODULE_ADD,
     GIT_SUBMODULE_ADD_DESC,
 )
-from tools.settings import NEW_SUBMODULES_PATH
-from tools.utils import human_readable, parse_repository_url, str_to_list
+from osh.settings import NEW_SUBMODULES_PATH
+from osh.utils import human_readable, parse_repository_url, str_to_list
 
 
 def find_addons(submodule_dir: Path):

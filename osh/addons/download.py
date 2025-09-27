@@ -7,12 +7,12 @@ from pathlib import Path
 
 import click
 
-from tools.compat import Optional
-from tools.github import fetch_branch_zip
-from tools.gitutils import commit, git_add, git_top, update_gitignore
-from tools.helpers import find_addons
-from tools.messages import GIT_ADDONS_IGNORED
-from tools.utils import parse_repository_url, str_to_list
+from osh.compat import Optional
+from osh.github import fetch_branch_zip
+from osh.gitutils import commit, git_add, git_top, update_gitignore
+from osh.helpers import find_addons
+from osh.messages import GIT_ADDONS_IGNORED
+from osh.utils import parse_repository_url, str_to_list
 
 logging.basicConfig(level=logging.INFO)
 

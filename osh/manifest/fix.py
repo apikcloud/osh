@@ -6,15 +6,15 @@ import black
 import click
 from libcst.display import dump
 
-from tools.helpers import find_addons_extended, get_manifest_path
-from tools.settings import (
+from osh.helpers import find_addons_extended, get_manifest_path
+from osh.settings import (
     BLACK_MODE,
     DEFAULT_VALUES,
     FORCED_KEYS,
     HEADERS,
     REPLACEMENTS,
 )
-from tools.utils import clean_string
+from osh.utils import clean_string
 
 
 def format_manifest(data: dict) -> str:

@@ -4,16 +4,16 @@ import shutil
 
 import click
 
-from tools.gitutils import (
+from osh.gitutils import (
     commit,
     git_add_all,
     git_top,
     parse_submodules,
     submodule_deinit,
 )
-from tools.helpers import symlink_targets
-from tools.messages import GIT_SUBMODULES_PRUNE
-from tools.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
+from osh.helpers import symlink_targets
+from osh.messages import GIT_SUBMODULES_PRUNE
+from osh.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
 
 
 @click.command(name="prune")

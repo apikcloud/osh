@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from tools.gitutils import (
+from osh.gitutils import (
     commit,
     git_add,
     git_add_all,
@@ -17,10 +17,10 @@ from tools.gitutils import (
     submodule_sync,
     submodule_update,
 )
-from tools.helpers import ask, desired_path, is_dir_empty, rewrite_symlink
-from tools.messages import GIT_SUBMODULES_REWRITE
-from tools.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
-from tools.utils import human_readable
+from osh.helpers import ask, desired_path, is_dir_empty, rewrite_symlink
+from osh.messages import GIT_SUBMODULES_REWRITE
+from osh.settings import NEW_SUBMODULES_PATH, OLD_SUBMODULES_PATH
+from osh.utils import human_readable
 
 
 @click.command(name="rewrite")

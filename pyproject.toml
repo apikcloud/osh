@@ -50,22 +50,22 @@ repository = "https://github.com/apikcloud/osh"
 
 [project.scripts]
 # Main CLI
-osh = "tools.__main__:main"
+osh = "osh.__main__:main"
 
 # Sub-commands
-osh-addons-add = "tools.addons.add:main"
-osh-addons-download = "tools.addons.download:main"
-osh-addons-list = "tools.addons.list:main"
-osh-addons-table = "tools.addons.gen_table:main"
-osh-man-check = "tools.manifest.check:main"
-osh-man-fix = "tools.manifest.fix:main"
-osh-man-rewrite = "tools.manifest.parser:main"
-osh-sub-add = "tools.submodules.add:main"
-osh-sub-check = "tools.submodules.check:main"
-osh-sub-clean = "tools.submodules.clean:main"
-osh-sub-flatten = "tools.submodules:flatten"
-osh-sub-prune = "tools.submodules.prune:main"
-osh-sub-rewrite = "tools.submodules.rewrite:main"
+osh-addons-add = "osh.addons.add:main"
+osh-addons-download = "osh.addons.download:main"
+osh-addons-list = "osh.addons.list:main"
+osh-addons-table = "osh.addons.gen_table:main"
+osh-man-check = "osh.manifest.check:main"
+osh-man-fix = "osh.manifest.fix:main"
+osh-man-rewrite = "osh.manifest.parser:main"
+osh-sub-add = "osh.submodules.add:main"
+osh-sub-check = "osh.submodules.check:main"
+osh-sub-clean = "osh.submodules.clean:main"
+osh-sub-flatten = "osh.submodules:flatten"
+osh-sub-prune = "osh.submodules.prune:main"
+osh-sub-rewrite = "osh.submodules.rewrite:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["osh"]
