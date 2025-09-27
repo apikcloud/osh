@@ -123,7 +123,7 @@ def find_addons_extended(
     for name in os.listdir(addons_dir):
         path = os.path.join(addons_dir, name)
         try:
-            manifest = read_manifest(path)
+            manifest = parse_manifest(path)
         except NoManifestFound:
             continue
         if installable_only and not manifest.get("installable", True):
