@@ -2,7 +2,7 @@ import contextlib
 import subprocess
 from pathlib import Path
 
-from osh.compat import Iterable, Optional, Union
+from osh.compat import Optional, Union
 from osh.exceptions import NoGitRepository
 from osh.helpers import ensure_parent, find_addons_extended
 from osh.utils import human_readable, run
@@ -171,7 +171,7 @@ def move_with_git(src: Path, dst: Path):
 
 def update_gitignore(  # noqa: C901
     file_path: Union[str, Path],
-    folders: Iterable[str],
+    folders: list,
     header: str = "# Ignored addons (auto)",
 ) -> bool:
     """
