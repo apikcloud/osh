@@ -6,12 +6,19 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
 
-from osh.compat import Any, List, Optional, Tuple
+from osh.compat import PY38, Any, List, Optional, Tuple
 from osh.exceptions import ScriptNotFound
 
 
 def get_exec_dir():
     return os.path.dirname(__file__)
+
+
+def removesuffix(raw, suffix) -> str:
+    # str.removesuffix added in 3.8
+    if PY38:
+        return raw[: len(raw) - len(suffix)] if raw[-len(suffix) :] == suffix else raw
+    return raw.removesuffix(suffix)
 
 
 def clean_url(url):
@@ -48,7 +55,7 @@ def parse_repository_url(url: str) -> Tuple[str, str, str]:
 
     def extract_data(parts: list) -> tuple:
         owner, repo = parts[0], parts[1]
-        repo = repo.removesuffix(".git")
+        repo = removesuffix(repo, ".git")
         canonical = f"https://{host}/{owner}/{repo}"
 
         if owner == "oca":
