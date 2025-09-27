@@ -19,7 +19,7 @@ import textwrap
 from pathlib import Path
 
 
-def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
+def _run(cmd: list, cwd: Path) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True)
 
 
