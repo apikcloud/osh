@@ -142,15 +142,9 @@ def parse_submodules(gitmodules: Path):
 
 def parse_submodules_extended(gitmodules: Path):
     """Return dict name -> {'path': str, 'url': str, 'branch': str|None}"""
-    paths = dict(
-        (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.path$")
-    )
-    urls = dict(
-        (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.url$")
-    )
-    branches = dict(
-        (k.split(".")[1], v) for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.branch$")
-    )
+    paths = {k.split(".")[1]: v for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.path$")}
+    urls = {k.split(".")[1]: v for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.url$")}
+    branches = {k.split(".")[1]: v for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.branch$")}
     out = {}
     for name in set(paths) | set(urls) | set(branches):
         out[name] = {

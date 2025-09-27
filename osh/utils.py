@@ -117,7 +117,7 @@ def run(
     capture: bool = False,
     cwd: Optional[str] = None,
     name: Optional[str] = None,
-) -> Union[str, None]:
+) -> Optional[str]:
     kwargs: dict = dict(text=True, cwd=cwd)
     if capture:
         # assign explicitly to avoid static type checkers inferring incompatible dict value types
