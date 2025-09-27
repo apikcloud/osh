@@ -54,3 +54,12 @@ DOCKER_COLLECTIONS = ["production", "ofleet"]
 DOCKER_RECOMMENDED_REGISTRIES = ["apik"]
 DOCKER_DEPRECATED_REGISTRIES = ["ofleet", "loginline"]
 DOCKER_WARN_REGISTRIES = ["odoo"]
+
+PROJECT_MANDATORY_FILES = {"requirements.txt", "odoo_version.txt", "packages.txt"}
+PROJECT_RECOMMENDED_FILES = {"README.md", "CODEOWNERS", "CHANGELOG.md", "blabla"}
+
+PROJECT_FILE_PACKAGES = "packages.txt"
+PROJECT_FILE_REQUIREMENTS = "requirements.txt"
+PROJECT_FILE_ODOO_VERSION = "odoo_version.txt"
+
+NEW_LINE = "\n"
