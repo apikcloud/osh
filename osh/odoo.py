@@ -1,4 +1,5 @@
 import re
+import warnings
 from dataclasses import dataclass
 from datetime import date
 
@@ -7,7 +8,7 @@ from osh.exceptions import (
     warn_deprecated_registry,
     warn_unusual_registry,
 )
-from osh.net import make_get
+from osh.net import make_json_get
 from osh.settings import (
     DOCKER_COLLECTIONS,
     DOCKER_DEPRECATED_REGISTRIES,
@@ -17,6 +18,14 @@ from osh.settings import (
     RELEASE_WARN_AGE_DAYS,
 )
 from osh.utils import date_from_string, render_table
+
+try:
+    import odoo
+except ImportError:
+    odoo = None  # type: ignore
+    warnings.warn(
+        "Odoo is not available, some features will not be available.", ImportWarning, stacklevel=0
+    )
 
 
 @dataclass
@@ -142,7 +151,7 @@ def fetch_odoo_images(collections: Optional[list] = None) -> list:
 
     if collections is None:
         collections = DOCKER_COLLECTIONS
-    data = make_get(ODOO_IMAGES_URL)
+    data = make_json_get(ODOO_IMAGES_URL)
 
     items = [ImageInfo.from_raw_dict(vals) for vals in data]
 

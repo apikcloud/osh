@@ -280,14 +280,18 @@ def guess_submodule_name(url: str, pull_request: bool = False) -> str:
     return f"{owner}/{repo}"
 
 
-def get_submodule_config(filepath: str, name: str, key: str) -> str:
+def get_submodule_config(filepath: str, name: str, key: str) -> Optional[str]:
     # Read current path/url/branch from .gitmodules (old name)
 
-    return run(
+    output = run(
         ["git", "config", "-f", filepath, f"submodule.{name}.{key}"],
         capture=True,
         check=False,
-    ).strip()
+    )
+    if output:
+        return output.strip()
+
+    return None
 
 
 def rename_submodule(  # noqa: PLR0913
@@ -297,12 +301,11 @@ def rename_submodule(  # noqa: PLR0913
     values: dict,
     dry_run: bool = False,
 ):
+    """Rename a git submodule from `name` to `new_name`, keeping the same path/url/branch."""
+
     # Guard if new_name already exists
-    existing_new_path = run(
-        ["git", "config", "-f", gitmodules_file, f"submodule.{new_name}.path"],
-        capture=True,
-        check=False,
-    ).strip()
+    existing_new_path = get_submodule_config(gitmodules_file, new_name, "path")
+
     if existing_new_path:
         raise ValueError(f"A submodule named '{new_name}' already exists in .gitmodules.")
 
@@ -335,6 +338,8 @@ def rename_submodule(  # noqa: PLR0913
 
 
 def get_last_tag() -> Optional[str]:
+    """Return the last git tag, or None if not a git repo or no tags."""
+
     try:
         out = run(["git", "describe", "--tags", "--abbrev=0"], capture=True)
         return out.strip() if out else None
@@ -342,7 +347,9 @@ def get_last_tag() -> Optional[str]:
         return None
 
 
-def get_last_release():
+def get_last_release() -> Optional[str]:
+    """Return the last git tag that looks like a semver version, or None if not found."""
+
     try:
         last_tag = get_last_tag()
         if not last_tag:
@@ -357,9 +364,11 @@ def get_last_release():
 
 
 def get_next_releases() -> tuple:
+    """Return next (normal, fix, major) release tags based on last release."""
+
     last_release = get_last_release()
     if not last_release:
-        raise ValueError("No valid last release tag found")
+        raise ValueError("No valid release found")
     m = pattern.match(last_release)
 
     if not m:
@@ -375,6 +384,8 @@ def get_next_releases() -> tuple:
 
 
 def get_last_commit() -> Optional[str]:
+    """Return a one-line description of the last commit, or None if not a git repo."""
+
     try:
         output = run(
             ["git", "log", "-1", "--date=iso-strict", "--pretty=format:%h;%an <%ae>;%ad;%s"],
@@ -391,6 +402,8 @@ def get_last_commit() -> Optional[str]:
 
 
 def get_remote_url(path=".", origin="origin") -> tuple:
+    """Return (url, owner, repo) for the given git repository path and remote name."""
+
     result = subprocess.run(
         ["git", "-C", path, "remote", "get-url", origin],
         check=True,
