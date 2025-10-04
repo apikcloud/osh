@@ -16,10 +16,14 @@ from osh.settings import DATETIME_FORMAT
 
 
 def get_exec_dir():
+    """Return the directory where the current script is located."""
+
     return os.path.dirname(__file__)
 
 
 def removesuffix(raw, suffix) -> str:
+    """Remove suffix from string if present (Python < 3.9 compatible)."""
+
     # str.removesuffix added in 3.8
     if PY38:
         return raw[: len(raw) - len(suffix)] if raw[-len(suffix) :] == suffix else raw
@@ -28,6 +32,7 @@ def removesuffix(raw, suffix) -> str:
 
 def clean_url(url):
     """Removes credentials from a URL if present and replaces http with https."""
+
     # Regex to match URLs with credentials
     pattern = re.compile(r"(https?://|http://)([^@]+@)?(.+)")
 
@@ -106,6 +111,8 @@ def parse_repository_url(url: str) -> Tuple[str, str, str]:
 
 
 def human_readable(raw: Any, sep: str = ", ") -> str:
+    """Convert a value to a human-readable string."""
+
     if isinstance(raw, bool):
         return "yes" if raw else "no"
     if isinstance(raw, (list, tuple, set)):
@@ -113,14 +120,18 @@ def human_readable(raw: Any, sep: str = ", ") -> str:
     return str(raw)
 
 
+def clean_string(raw: Any) -> str:
+    """Convert a value to a cleaned string (stripped, no trailing spaces)."""
+
+    return str(raw).strip().rstrip() if raw else ""
+
+
 def str_to_list(raw: str, sep=",") -> list:
+    """Convert a separated string to a list of cleaned items."""
+
     if not raw:
         return []
-    return list(filter(bool, (item.strip().rstrip() for item in raw.split(sep))))
-
-
-def clean_string(raw: Any):
-    return raw.strip().rstrip() if raw else ""
+    return list(filter(bool, (clean_string(item) for item in raw.split(sep))))
 
 
 def run(
@@ -196,6 +207,10 @@ def read_and_parse(path: Path):
 
 
 def date_from_string(raw: str) -> date:
+    """
+    Convert an 8-character string in YYYYMMDD format into a datetime.date object.
+    """
+
     if len(raw) != 8:  # noqa: PLR2004
         raise ValueError("The string does not have the correct length to be converted to a date.")
 
@@ -210,13 +225,19 @@ def write_text_file(path: Path, lines: list, new_line: str = "\n", add_final_new
     path.write_text(content)
 
 
-def is_pull_request_path(raw: str) -> bool:
+def is_pull_request_path(raw: Optional[str]) -> bool:
     """Detect if a submodule path looks like a pull request path."""
+
+    if not raw:
+        return False
+
     return raw.startswith("PRs/") or "pr" in raw.split("/")
 
 
 def copytree(src: Path, dst: Path, ignore_git: bool = True) -> None:
-    """Copy src tree to dst. Fails if dst exists."""
+    """
+    Copy src tree to dst. Fails if dst exists.
+    """
 
     def _ignore(_dir, names):
         if not ignore_git:
@@ -227,6 +248,10 @@ def copytree(src: Path, dst: Path, ignore_git: bool = True) -> None:
 
 
 def materialize_symlink(symlink_path: Path, dry_run: bool) -> None:
+    """
+    Replace a symbolic link that points to a directory with a physical copy of its target.
+    """
+
     if not symlink_path.exists():
         raise ValueError(f"Path not found: {symlink_path}")
     if not symlink_path.is_symlink():
@@ -264,7 +289,10 @@ def materialize_symlink(symlink_path: Path, dry_run: bool) -> None:
 def render_table(
     rows: List[List[Any]], headers: Optional[List[str]] = None, index: bool = False
 ) -> str:
-    """Render a table using the tabulate library."""
+    """
+    Render a table using the tabulate library.
+    """
+
     options = {}
     if index:
         options["showindex"] = True
@@ -275,4 +303,8 @@ def render_table(
 
 
 def format_datetime(dt: datetime) -> str:
+    """
+    Format a datetime object as a string using the module's DATETIME_FORMAT.
+    """
+
     return dt.strftime(DATETIME_FORMAT)

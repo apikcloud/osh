@@ -177,22 +177,22 @@ def test_parse_image_without_release():
 
 
 def test_check_image():
-    assert (
-        check_image(
-            ImageInfo(
-                **{
-                    "image": "apik/odoo:15-20230103-enterprise-legacy",
-                    "registry": "apik",
-                    "repository": "odoo",
-                    "major_version": 15.0,
-                    "release": date(2023, 1, 3),
-                    "enterprise": True,
-                    "legacy": True,
-                }
-            )
-        )
-        is None
-    )
+    assert check_image(
+        ImageInfo(
+            **{
+                "image": "apik/odoo:15-20230103-enterprise-legacy",
+                "registry": "apik",
+                "repository": "odoo",
+                "major_version": 15.0,
+                "release": date(2023, 1, 3),
+                "enterprise": True,
+                "legacy": True,
+            }
+        ),
+        strict=False,
+    ) == [
+        f"The current Odoo image is {(date.today() - date(2023, 1, 3)).days} days old, consider updating it",
+    ]
 
 
 def test_check_deprecated_image():

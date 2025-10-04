@@ -5,6 +5,8 @@ from osh.submodules.check import main as check
 from osh.submodules.clean import main as clean
 from osh.submodules.prune import main as prune
 from osh.submodules.rewrite import main as rewrite
+from osh.submodules.show import main as show
+from osh.submodules.update import main as update
 from osh.utils import run_script
 
 
@@ -31,3 +33,5 @@ submodules.add_command(clean)
 submodules.add_command(prune)
 submodules.add_command(rewrite)
 submodules.add_command(flatten)
+submodules.add_command(update)
+submodules.add_command(show)

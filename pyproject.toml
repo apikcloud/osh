@@ -77,6 +77,8 @@ osh-sub-flatten = "osh.submodules:flatten"
 osh-sub-prune = "osh.submodules.prune:main"
 osh-sub-rename = "osh.submodules.rename:main"
 osh-sub-rewrite = "osh.submodules.rewrite:main"
+osh-sub-show = "osh.submodules.show:main"
+osh-sub-update = "osh.submodules.update:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["osh"]

@@ -23,7 +23,12 @@ from osh.utils import format_datetime, human_readable, render_table
     help="GitHub token to request API, needs actions:read or repo scope."
     " Envvar is also supported: TOKEN, GH_TOKEN, GITHUB_TOKEN.",
 )
-def main(token: str):  # noqa: C901
+@click.option(
+    "--minimal",
+    is_flag=True,
+    help="Show minimal output.",
+)
+def main(token: str, minimal: bool):  # noqa: C901
     """Display information about the current project and Odoo image."""
 
     repo = git_top()
@@ -38,8 +43,8 @@ def main(token: str):  # noqa: C901
     url, owner, repo = get_remote_url()
 
     try:
-        stable, fix, major = get_next_releases()
-        next_releases = f"stable: {stable}, fix: {fix}, major: {major}"
+        minor, fix, major = get_next_releases()
+        next_releases = f"minor: {minor}, fix: {fix}, major: {major}"
     except ValueError:
         next_releases = "no valid release found"
 
@@ -62,6 +67,8 @@ def main(token: str):  # noqa: C901
     else:
         message = "Current odoo version does not specify a release date, cannot proceed"
 
+    last_commit = get_last_commit()
+
     rows = [
         ["Odoo version", f"{image_infos.major_version} ({image_infos.edition})"],
         ["Date of current image", image_infos.release or "no valid release found"],
@@ -73,25 +80,19 @@ def main(token: str):  # noqa: C901
         ["Remote URL", url or "no remote found"],
         ["Last release", last_release or "no valid release found"],
         ["Next release", next_releases],
-        ["Last commit", get_last_commit() or "no valid commit found"],
+        ["Last commit", str(last_commit) if last_commit else "no valid commit found"],
     ]
 
-    if token:
-        data = get_latest_workflow_run(owner=owner, repo=repo, token=token, branch="main")
+    if not minimal and token:
+        res = get_latest_workflow_run(owner=owner, repo=repo, token=token, branch="main")
 
-        rows.append(["GitHub Actions:", ""])
-        # rows.append(
-        #     [data["workflow"], f"On {data['event']}: {data['status']} ({data['conclusion']})"]
-        # )
-        rows.append(["Workflow", data["workflow"]])
-        rows.append(["Event", data["event"]])
-        rows.append(["Status", data["status"]])
-        rows.append(["Conclusion", data["conclusion"]])
-        rows.append(["SHA", data["sha"]])
-        rows.append(
-            ["Created at", f"{format_datetime(data['created_at'])} ({data['age']} days ago)"]
-        )
-        rows.append(["URL", data["url"]])
+        if not res:
+            errors.append("Could not fetch latest GitHub Actions workflow run")
+        else:
+            rows.append(["GitHub Actions:", ""])
+            rows.append(["Last run:", str(res)])
+            rows.append(["Date", f"{format_datetime(res.date)} ({res.age} days ago)"])
+            rows.append(["URL", res.url])
 
     if warnings:
         for row in warnings:

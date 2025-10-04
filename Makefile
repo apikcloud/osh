@@ -10,6 +10,8 @@ help:
 	@echo "  make lint         Run ruff linter"
 	@echo "  make typecheck    Run pyright type checking"
 	@echo "  make test         Run pytest suite"
+	@echo "  make cov          Run pytest with coverage"
+	@echo "  make cov-html     Run pytest with coverage"
 	@echo "  make build        Build wheel/sdist"
 	@echo "  make clean        Remove build artifacts"
 

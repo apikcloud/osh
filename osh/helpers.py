@@ -13,6 +13,8 @@ from osh.utils import parse_repository_url
 
 
 def ask(prompt: str, default="y"):
+    """Ask a yes/no question via input() and return their answer."""
+
     try:
         answer = input(prompt).strip().lower()
     except EOFError:
@@ -21,10 +23,14 @@ def ask(prompt: str, default="y"):
 
 
 def ensure_parent(path: Path):
+    """Ensure the parent directory of `path` exists."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
 def is_dir_empty(p: Path) -> bool:
+    """Return True if the directory exists and is empty."""
+
     try:
         return p.is_dir() and not any(p.iterdir())
     except FileNotFoundError:
@@ -32,6 +38,8 @@ def is_dir_empty(p: Path) -> bool:
 
 
 def rewrite_symlink(link: Path, old_prefix: str, new_prefix: str):
+    """Rewrite a symlink if its target starts with old prefix."""
+
     try:
         target = os.readlink(link)
     except OSError:
@@ -45,6 +53,8 @@ def rewrite_symlink(link: Path, old_prefix: str, new_prefix: str):
 
 
 def desired_path(url: str, base_dir: str, pull_request: bool = False) -> str:
+    """Return the desired local path for a git repository URL."""
+
     _, owner, repo = parse_repository_url(url)
     if owner == "oca":
         owner = owner.upper()
@@ -70,10 +80,14 @@ def symlink_targets(repo: Path):
 
 
 def relpath(from_path: Path, to_path: Path) -> str:
+    """Return a relative path from `from_path` to `to_path`."""
+
     return os.path.relpath(to_path, start=from_path)
 
 
 def find_addons(root: Path, shallow: bool = False):
+    """Yield all odoo addons under `root`."""
+
     root_parts = root.resolve().parts
 
     # followlinks=True lets us enter first-level *symlinked* directories
@@ -93,7 +107,8 @@ def find_addons(root: Path, shallow: bool = False):
                 dirnames[:] = []
 
 
-def get_manifest_path(addon_dir):
+def get_manifest_path(addon_dir: str) -> Optional[str]:
+    """Return the path to the manifest file in this addon directory."""
     for manifest_name in MANIFEST_NAMES:
         manifest_path = os.path.join(addon_dir, manifest_name)
         if os.path.isfile(manifest_path):
@@ -133,7 +148,8 @@ def load_manifest(path: Path) -> dict:
 def find_addons_extended(
     addons_dir: Union[str, Path], installable_only: bool = False, names: Optional[list] = None
 ):
-    """yield (addon_name, addon_dir, manifest)"""
+    """Yield (name, path, manifest) for each addon in the given directory."""
+
     for name in os.listdir(addons_dir):
         path = os.path.join(addons_dir, name)
         try:
@@ -150,6 +166,8 @@ def find_addons_extended(
 
 
 def find_manifests(path: str, names: Optional[list] = None):
+    """Yield the path to each manifest file in the given directory."""
+
     for name in os.listdir(path):
         addon_path = os.path.join(path, name)
         try:

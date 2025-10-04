@@ -19,7 +19,7 @@ from osh.utils import is_pull_request_path
 @click.option("--no-commit", is_flag=True, help="Do not commit changes")
 def main(dry_run: bool, no_commit: bool):
     """
-    Rename git submodules
+    Rename git submodules to match new naming conventions.
     """
 
     repo = git_top()

@@ -18,14 +18,16 @@ import subprocess
 import textwrap
 from pathlib import Path
 
+from click.testing import CliRunner
+
+from osh.submodules.rewrite import main
+
 
 def _run(cmd: list, cwd: Path) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True)
 
 
-def _init_git_repo(tmp_path: Path) -> Path:
-    repo = tmp_path / "repo"
-    repo.mkdir()
+def _init_git_repo(repo: Path) -> Path:
     _run(["git", "init", "-q"], repo)
     # minimal identity
     _run(["git", "config", "user.email", "ci@example.com"], repo)
@@ -59,22 +61,23 @@ def _write_gitmodules(repo: Path) -> None:
 
 
 def test_sub_rewrite_rewrites_paths(tmp_path: Path):
-    repo = _init_git_repo(tmp_path)
-    _write_gitmodules(repo)
+    runner = CliRunner()
+    with runner.isolated_filesystem(tmp_path):
+        repo = _init_git_repo(tmp_path)
+        _write_gitmodules(repo)
 
-    # Dry-run first (should not commit changes)
-    pr = _run(["osh-sub-rewrite", "--dry-run", "--force"], repo)
-    assert pr.returncode == 0, pr.stderr
+        pr = runner.invoke(main, ["--dry-run", "--force"])
 
-    # Now actual rewrite (with commit)
-    pr = _run(["osh-sub-rewrite", "--force"], repo)
-    assert pr.returncode == 0, pr.stderr
+        assert pr.exit_code == 0
 
-    # Verify .gitmodules paths were rewritten
-    data = (repo / ".gitmodules").read_text()
-    assert "path = .third-party/OCA/server-ux" in data
-    assert "path = .third-party/odoo/odoo" in data
+        pr = runner.invoke(main, ["--force"])
+        assert pr.exit_code == 0
 
-    # Optional: ensure a commit was created
-    log = _run(["git", "log", "-1", "--pretty=%s"], repo).stdout.strip()
-    assert "chore: rewrite submodule paths based on remote URL" in log
+        # Verify .gitmodules paths were rewritten
+        data = (repo / ".gitmodules").read_text()
+        assert "path = .third-party/OCA/server-ux" in data
+        assert "path = .third-party/odoo/odoo" in data
+
+        # Optional: ensure a commit was created
+        log = _run(["git", "log", "-1", "--pretty=%s"], repo).stdout.strip()
+        assert "chore: rewrite submodule paths based on remote URL" in log

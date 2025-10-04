@@ -1,18 +1,28 @@
+import logging
 import os
 import zipfile
-from datetime import datetime, timezone
 
 import requests
 
 from osh.compat import Optional, Tuple
+from osh.models import WorfklowRunInfo
+from osh.net import make_json_get
 from osh.settings import GITHUB_API
 
 
-def _headers(token: Optional[str]) -> dict:
-    h = {"Accept": "application/vnd.github+json"}
+def _get_headers(token: Optional[str]) -> dict:
+    """Return the headers to use for GitHub API requests."""
+
+    res = {"Accept": "application/vnd.github+json"}
     if token:
-        h["Authorization"] = f"token {token}"
-    return h
+        res["Authorization"] = f"token {token}"
+    return res
+
+
+def _get_api_url(owner: str, repo: str, endpoint: str) -> str:
+    """Return the full GitHub API URL for this owner/repo/endpoint."""
+
+    return f"{GITHUB_API}/repos/{owner}/{repo}/{endpoint}"
 
 
 def fetch_branch_zip(  # noqa: PLR0913
@@ -28,12 +38,11 @@ def fetch_branch_zip(  # noqa: PLR0913
     Returns (zip_path, extracted_root_or_None).
     """
     os.makedirs(out_dir, exist_ok=True)
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/zipball/{branch}"
     zip_path = os.path.join(out_dir, f"{repo}-{branch}.zip")
 
     with requests.get(
-        url,
-        headers=_headers(token),
+        _get_api_url(owner, repo, f"zipball/{branch}"),
+        headers=_get_headers(token),
         stream=True,
     ) as r:
         r.raise_for_status()
@@ -55,33 +64,25 @@ def fetch_branch_zip(  # noqa: PLR0913
 
 def get_latest_workflow_run(
     owner: str, repo: str, token: str, branch: Optional[str] = None
-) -> dict:  # pragma: no cover
-    """Fetch and print the latest GitHub Actions workflow run for this repo."""
+) -> Optional[WorfklowRunInfo]:  # pragma: no cover
+    """Fetch the latest GitHub Actions workflow run for this repo."""
 
     params = {"per_page": "1"}
     if branch:
         params["branch"] = branch
 
-    headers = {"Accept": "application/vnd.github+json", "Authorization": f"token {token}"}
-    url = f"https://api.github.com/repos/{owner}/{repo}/actions/runs"
-
-    r = requests.get(url, headers=headers, params=params, timeout=20)
-    r.raise_for_status()
-
-    run = r.json()["workflow_runs"][0]
-
-    # ISO8601 -> datetime (handles trailing 'Z')
-    created = datetime.fromisoformat(run["created_at"].replace("Z", "+00:00")).astimezone(
-        timezone.utc
+    response = make_json_get(
+        _get_api_url(owner, repo, "actions/runs"),
+        headers=_get_headers(token),
+        params=params,
     )
 
-    return {
-        "workflow": run["name"],
-        "event": run["event"],
-        "status": run["status"],
-        "conclusion": run["conclusion"],
-        "sha": run["head_sha"][:7],
-        "created_at": created,
-        "age": (datetime.now(timezone.utc) - created).days,
-        "url": run["html_url"],
-    }
+    data = response["workflow_runs"][0]
+
+    try:
+        res = WorfklowRunInfo.from_dict(data)
+    except Exception as e:
+        logging.error(f"Could not parse workflow run data: {e}")
+        return None
+
+    return res

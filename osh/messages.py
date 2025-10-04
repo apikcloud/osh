@@ -26,3 +26,4 @@ GIT_ODOO_IMAGE_UPDATE = "chore: update odoo image to '{new}'\n\nFrom '{old}', {d
 GIT_SUBMODULES_RENAME = "chore: rename submodules to new naming scheme"
 GIT_MATERIALIZE_ADDONS = "chore: materialize addon(s) {names}"
 GIT_UPDATE_PRE_COMMIT_EXCLUDE = "chore: update pre-commit exclusions"
+GIT_SUBMODULES_UPDATE = "chore: update submodules to latest upstream versions"

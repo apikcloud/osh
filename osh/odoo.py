@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+import warnings
 from datetime import date
 
 from osh.compat import Optional
@@ -7,7 +7,8 @@ from osh.exceptions import (
     warn_deprecated_registry,
     warn_unusual_registry,
 )
-from osh.net import make_get
+from osh.models import ImageInfo
+from osh.net import make_json_get
 from osh.settings import (
     DOCKER_COLLECTIONS,
     DOCKER_DEPRECATED_REGISTRIES,
@@ -18,46 +19,13 @@ from osh.settings import (
 )
 from osh.utils import date_from_string, render_table
 
-
-@dataclass
-class ImageInfo:
-    image: str
-    registry: str
-    repository: str
-    major_version: float
-    release: Optional[date]
-    enterprise: bool
-    legacy: bool = False
-    delta: int = 0  # days since release, to be filled later
-    collection: Optional[str] = None  # to be filled later
-
-    @property
-    def source(self) -> str:
-        return f"{self.registry}/{self.repository}"
-
-    @property
-    def edition(self) -> str:
-        return "enterprise" if self.enterprise else "community"
-
-    @property
-    def age(self) -> Optional[int]:
-        if self.release:
-            return (date.today() - self.release).days
-        return None
-
-    @classmethod
-    def from_raw_dict(cls, vals: dict):
-        return cls(
-            **{
-                "image": vals["image"],
-                "registry": vals["org"],
-                "repository": vals["repo"],
-                "major_version": float(vals["version"]),
-                "release": date_from_string(vals["release"]),
-                "enterprise": vals["edition"] == "enterprise",
-                "collection": vals.get("collection"),
-            }
-        )
+try:
+    import odoo
+except ImportError:
+    odoo = None  # type: ignore
+    warnings.warn(
+        "Odoo is not available, some features will not be available.", ImportWarning, stacklevel=0
+    )
 
 
 def parse_image_tag(tag: str) -> ImageInfo:
@@ -142,7 +110,7 @@ def fetch_odoo_images(collections: Optional[list] = None) -> list:
 
     if collections is None:
         collections = DOCKER_COLLECTIONS
-    data = make_get(ODOO_IMAGES_URL)
+    data = make_json_get(ODOO_IMAGES_URL)
 
     items = [ImageInfo.from_raw_dict(vals) for vals in data]
 

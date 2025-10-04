@@ -1,14 +1,22 @@
 import contextlib
 import logging
+import os
 import re
 import subprocess
-from datetime import datetime
+from configparser import ConfigParser
 from pathlib import Path
+from warnings import warn
 
 from osh.compat import Optional, Union
 from osh.exceptions import NoGitRepository
 from osh.helpers import ensure_parent, find_addons_extended
-from osh.utils import format_datetime, human_readable, parse_repository_url, run
+from osh.models import CommitInfo
+from osh.utils import (
+    human_readable,
+    is_pull_request_path,
+    parse_repository_url,
+    run,
+)
 
 pattern = re.compile(r"^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 pattern = re.compile(r"^v(?P<x>0|[1-9]\d*)\.(?P<y>0|[1-9]\d*)\.(?P<z>0|[1-9]\d*)$")
@@ -134,6 +142,14 @@ def git_get_regexp(gitmodules: Path, pattern: str):
 
 
 def parse_submodules(gitmodules: Path):
+    """Parse .gitmodules with regexp (deprecated)."""
+
+    warn(
+        "`parse_submodules` is deprecated, use `parse_gitmodules` instead.",
+        DeprecationWarning,
+        stacklevel=0,
+    )
+
     urls = git_get_regexp(gitmodules, r"^submodule\..*\.url$")
     paths = git_get_regexp(gitmodules, r"^submodule\..*\.path$")
     branches = git_get_regexp(gitmodules, r"^submodule\..*\.branch$")
@@ -151,7 +167,14 @@ def parse_submodules(gitmodules: Path):
 
 
 def parse_submodules_extended(gitmodules: Path):
-    """Return dict name -> {'path': str, 'url': str, 'branch': str|None}"""
+    """Parse .gitmodules with regexp (deprecated)."""
+
+    warn(
+        "`parse_submodules_extended` is deprecated, use `parse_gitmodules` instead.",
+        DeprecationWarning,
+        stacklevel=0,
+    )
+
     paths = {k.split(".")[1]: v for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.path$")}
     urls = {k.split(".")[1]: v for k, v in git_get_regexp(gitmodules, r"^submodule\..*\.url$")}
     branches = {
@@ -280,14 +303,18 @@ def guess_submodule_name(url: str, pull_request: bool = False) -> str:
     return f"{owner}/{repo}"
 
 
-def get_submodule_config(filepath: str, name: str, key: str) -> str:
+def get_submodule_config(filepath: str, name: str, key: str) -> Optional[str]:
     # Read current path/url/branch from .gitmodules (old name)
 
-    return run(
+    output = run(
         ["git", "config", "-f", filepath, f"submodule.{name}.{key}"],
         capture=True,
         check=False,
-    ).strip()
+    )
+    if output:
+        return output.strip()
+
+    return None
 
 
 def rename_submodule(  # noqa: PLR0913
@@ -297,12 +324,11 @@ def rename_submodule(  # noqa: PLR0913
     values: dict,
     dry_run: bool = False,
 ):
+    """Rename a git submodule from `name` to `new_name`, keeping the same path/url/branch."""
+
     # Guard if new_name already exists
-    existing_new_path = run(
-        ["git", "config", "-f", gitmodules_file, f"submodule.{new_name}.path"],
-        capture=True,
-        check=False,
-    ).strip()
+    existing_new_path = get_submodule_config(gitmodules_file, new_name, "path")
+
     if existing_new_path:
         raise ValueError(f"A submodule named '{new_name}' already exists in .gitmodules.")
 
@@ -335,6 +361,8 @@ def rename_submodule(  # noqa: PLR0913
 
 
 def get_last_tag() -> Optional[str]:
+    """Return the last git tag, or None if not a git repo or no tags."""
+
     try:
         out = run(["git", "describe", "--tags", "--abbrev=0"], capture=True)
         return out.strip() if out else None
@@ -342,7 +370,9 @@ def get_last_tag() -> Optional[str]:
         return None
 
 
-def get_last_release():
+def get_last_release() -> Optional[str]:
+    """Return the last git tag that looks like a semver version, or None if not found."""
+
     try:
         last_tag = get_last_tag()
         if not last_tag:
@@ -357,9 +387,11 @@ def get_last_release():
 
 
 def get_next_releases() -> tuple:
+    """Return next (normal, fix, major) release tags based on last release."""
+
     last_release = get_last_release()
     if not last_release:
-        raise ValueError("No valid last release tag found")
+        raise ValueError("No valid release found")
     m = pattern.match(last_release)
 
     if not m:
@@ -374,23 +406,31 @@ def get_next_releases() -> tuple:
     return normal, fix, major
 
 
-def get_last_commit() -> Optional[str]:
+def get_last_commit(path: Optional[str] = None) -> Optional[CommitInfo]:
+    """Return a one-line description of the last commit, or None if not a git repo."""
+
+    cmd = ["git", "log", "-1", "--date=iso-strict", "--pretty=format:%h;%an;%ae;%ad;%s"]
+    if path:
+        cmd.insert(1, "-C")
+        cmd.insert(2, path)
+
     try:
         output = run(
-            ["git", "log", "-1", "--date=iso-strict", "--pretty=format:%h;%an <%ae>;%ad;%s"],
+            cmd,
             capture=True,
         )
         if not output:
             return None
 
-        sha, author, date_str, message = output.split(";", 3)
-        commit_date = datetime.fromisoformat(date_str)
-        return f"{message} by {author} on {format_datetime(commit_date)} ({sha})"
+        return CommitInfo.from_string(output)
+
     except subprocess.CalledProcessError:
         return None
 
 
 def get_remote_url(path=".", origin="origin") -> tuple:
+    """Return (url, owner, repo) for the given git repository path and remote name."""
+
     result = subprocess.run(
         ["git", "-C", path, "remote", "get-url", origin],
         check=True,
@@ -399,3 +439,56 @@ def get_remote_url(path=".", origin="origin") -> tuple:
     )
 
     return parse_repository_url(result.stdout.strip())
+
+
+def extract_submodule_name(line: str) -> Optional[str]:
+    """Extract submodule name from a line like 'submodule "NAME"'."""
+
+    match = re.search(r'submodule\s+"([^"]+)"', line)
+    if match:
+        name = match.group(1)
+        return name
+
+    return None
+
+
+def parse_gitmodules(filepath: Path):
+    """Yield (name, path, branch, url, pull_request) for each submodule in .gitmodules."""
+
+    config = ConfigParser()
+    config.read(filepath)
+
+    for section in config.sections():
+        name = extract_submodule_name(section)
+        path = config.get(section, "path", fallback=None)
+        branch = config.get(section, "branch", fallback=None)
+        url = config.get(section, "url", fallback=None)
+        pr = is_pull_request_path(path) or is_pull_request_path(name)
+
+        yield name, path, branch, url, pr
+
+
+def update_from(path: str, branch: str) -> None:
+    """Fetch, checkout and pull the given branch for the git repository at path."""
+
+    subprocess.run(
+        ["git", "-C", path, "fetch", "origin", branch],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", path, "checkout", branch],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", path, "pull", "origin", branch],
+        check=True,
+    )
+
+
+def load_repo(change_dir: bool = True):
+    repo = git_top()
+    if change_dir:
+        os.chdir(repo)
+    gitmodules = repo / ".gitmodules"
+
+    return repo, gitmodules if gitmodules.exists() else None
