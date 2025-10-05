@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 from osh.compat import Optional
-from osh.utils import date_from_string, format_datetime
+from osh.utils import date_from_string, format_datetime, load_manifest
 
 
 @dataclass
@@ -126,3 +127,45 @@ class WorfklowRunInfo:
 
     def __str__(self) -> str:
         return f"{self.name} triggered by {self.event} on {self.branch} by {self.actor} ({self.status}/{self.conclusion})"  # noqa: E501
+
+
+@dataclass
+class AddonInfo:
+    path: str
+    rel_path: str
+    technical_name: str
+    symlink: bool
+    root: bool  # is it in the root of the repo?
+    author: str
+    version: str
+    installable: bool
+
+    @property
+    def symlinked(self) -> bool:
+        return self.symlink and self.root
+
+    @classmethod
+    def from_path(cls, path: Path, root_path: Path) -> "AddonInfo":
+        manifest = load_manifest(path)
+        symlink = path.is_symlink()
+        root = path.parent == root_path
+
+        if symlink:
+            # resolve the symlink to get real path
+            path = path.resolve()
+            rel_path = str(path.relative_to(root_path).parent)
+        else:
+            rel_path = str(path.relative_to(root_path).parent)
+
+        rel_path = "" if rel_path == "." else rel_path
+
+        return cls(
+            path=str(path),
+            technical_name=path.name,
+            symlink=symlink,
+            root=root,
+            rel_path=rel_path,
+            author=manifest.get("author", "unknown"),
+            version=manifest.get("version", "unknown"),
+            installable=manifest.get("installable", True),
+        )

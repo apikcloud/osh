@@ -53,22 +53,23 @@ def main(
         new_addons = []
         skipped_addons = []
         for addon in find_addons(Path(extracted_root)):
-            if addons and addon.name not in addons:
-                skipped_addons.append(addon.name)
+            if addons and addon.technical_name not in addons:
+                skipped_addons.append(addon.technical_name)
                 continue
 
-            target_path = local_repo / addon.name
+            target_path = local_repo / addon.technical_name
+
+            # FIXME: check duplicates (addon already exists) and version before copying
 
             try:
-                logging.debug(f"Copy {addon.name} from {addon} to {target_path}")
-                shutil.copytree(addon, target_path)
+                logging.debug(f"Copy {addon.technical_name} from {addon} to {target_path}")
+                shutil.copytree(addon.path, target_path)
             except FileExistsError:
-                logging.warning(f"Skip {addon.name}")
-                skipped_addons.append(addon.name)
+                logging.warning(f"Skip {addon.technical_name}")
+                skipped_addons.append(addon.technical_name)
                 continue
 
-            new_addons.append(addon.name)
-            new_addons.append(addon.name)
+            new_addons.append(addon.technical_name)
 
         if skipped_addons:
             logging.debug(" ".join(skipped_addons))

@@ -20,9 +20,9 @@ def main(no_commit: bool):  # noqa: C901, PLR0912
         return 1
 
     names = []
-    for addon_dir in find_addons(repo, shallow=True):
-        if addon_dir.is_symlink():
-            names.append(f"{addon_dir.name}/")
+    for addon in find_addons(repo, shallow=True):
+        if addon.symlink:
+            names.append(f"{addon.technical_name}/")
 
     if not names:
         click.echo("No symlinked addons found.")

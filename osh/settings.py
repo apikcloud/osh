@@ -1,3 +1,5 @@
+import os
+
 import black
 
 NEW_SUBMODULES_PATH = ".third-party"
@@ -71,3 +73,6 @@ RELEASE_WARN_AGE_DAYS = 30
 
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+CHECK_SYMBOL = "✓" if os.environ.get("LANG", "").lower().endswith(".utf-8") else "[X]"

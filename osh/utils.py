@@ -1,9 +1,11 @@
+import ast
 import contextlib
 import logging
 import os
 import re
 import shutil
 import subprocess
+import textwrap
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -12,7 +14,7 @@ from tabulate import tabulate
 
 from osh.compat import PY38, Any, List, Optional, Tuple
 from osh.exceptions import ScriptNotFound
-from osh.settings import DATETIME_FORMAT
+from osh.settings import CHECK_SYMBOL, DATETIME_FORMAT, MANIFEST_NAMES
 
 
 def get_exec_dir():
@@ -110,13 +112,17 @@ def parse_repository_url(url: str) -> Tuple[str, str, str]:
     return extract_data(parts)
 
 
-def human_readable(raw: Any, sep: str = ", ") -> str:
+def human_readable(raw: Any, sep: str = ", ", width: Optional[int] = None) -> str:
     """Convert a value to a human-readable string."""
 
     if isinstance(raw, bool):
         return "yes" if raw else "no"
     if isinstance(raw, (list, tuple, set)):
         return sep.join(map(str, raw))
+
+    if width:
+        return textwrap.shorten(raw, width=width, placeholder="...")
+
     return str(raw)
 
 
@@ -308,3 +314,36 @@ def format_datetime(dt: datetime) -> str:
     """
 
     return dt.strftime(DATETIME_FORMAT)
+
+
+def parse_manifest(filepath: Path) -> dict:
+    """
+    Parse an Odoo manifest file,
+    then safely convert it to a Python dict via ast.literal_eval.
+    """
+    source = filepath.read_text(encoding="utf-8")
+
+    # Convert the exact dict literal slice to a Python object (safe: literals only).
+    manifest = ast.literal_eval(source)
+    if not isinstance(manifest, dict):
+        logging.error("Parsed manifest is not a dict after literal evaluation.")
+        return {}
+    return manifest
+
+
+def load_manifest(addon_dir: Path) -> dict:
+    """Return the path to the manifest file in this addon directory."""
+    for manifest_name in MANIFEST_NAMES:
+        manifest_path = addon_dir / manifest_name
+        if manifest_path.is_file():
+            return parse_manifest(manifest_path)
+    logging.error(f"No Odoo manifest found in {addon_dir}")
+    return {}
+
+
+def render_boolean(raw: bool) -> str:
+    """
+    Render a check mark if the terminal supports UTF-8, otherwise an 'OK'.
+    """
+    return "X" if raw else ""
+    return CHECK_SYMBOL if raw else ""

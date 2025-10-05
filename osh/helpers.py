@@ -2,12 +2,14 @@
 import ast
 import contextlib
 import os
+from collections.abc import Generator
 from pathlib import Path
 
 import libcst as cst
 
 from osh.compat import Optional, Union
 from osh.exceptions import NoManifestFound
+from osh.models import AddonInfo
 from osh.settings import MANIFEST_NAMES
 from osh.utils import parse_repository_url
 
@@ -85,7 +87,7 @@ def relpath(from_path: Path, to_path: Path) -> str:
     return os.path.relpath(to_path, start=from_path)
 
 
-def find_addons(root: Path, shallow: bool = False):
+def find_addons(root: Path, shallow: bool = False) -> Generator[AddonInfo, None, None]:
     """Yield all odoo addons under `root`."""
 
     root_parts = root.resolve().parts
@@ -96,9 +98,13 @@ def find_addons(root: Path, shallow: bool = False):
         if ".git" in dirnames:
             dirnames.remove(".git")
 
+        if "setup" in dirnames:
+            dirnames.remove("setup")  # don't enter setup/ subdir
+
         # found an addon here?
         if "__manifest__.py" in filenames or "__openerp__.py" in filenames:
-            yield Path(dirpath)
+            # print(dirpath)
+            yield AddonInfo.from_path(Path(dirpath), root_path=root)
 
         if shallow:
             depth = len(Path(dirpath).resolve().parts) - len(root_parts)

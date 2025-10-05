@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
-import contextlib
-import csv
-import json
-import subprocess
-import sys
 
 import click
 
-from osh.gitutils import git_top, parse_submodules_extended, submodule_update
+from osh.gitutils import load_repo, parse_gitmodules
 from osh.helpers import find_addons
-from osh.settings import NEW_LINE
-from osh.utils import human_readable
+from osh.utils import human_readable, parse_repository_url, render_boolean, render_table
 
 
 @click.command(name="list")
@@ -38,77 +32,87 @@ from osh.utils import human_readable
     is_flag=True,
     help="Limit to these submodule names (as in .gitmodules)",
 )
-def main(format: str, init: bool, submodules: tuple, symlinks_only: bool):  # noqa: C901, PLR0912
+@click.option(
+    "--all",
+    "show_all",
+    is_flag=True,
+    help="List all addons, including those not in submodules (i.e. in the root of the repo)",
+)
+def main(format: str, init: bool, submodules: tuple, symlinks_only: bool, show_all: bool):  # noqa: C901, PLR0912
     """List all addons found in git submodules."""
 
-    repo = git_top()
-    gm = repo / ".gitmodules"
-    if not gm.exists():
-        click.echo("No .gitmodules found.", file=sys.stderr)
-        return 1
+    repo, gitmodules = load_repo()
 
-    if symlinks_only:
-        click.echo("Filtering to addons that are symlinks on disk...")
-        names = []
-        for addon_dir in find_addons(repo, shallow=True):
-            if addon_dir.is_symlink():
-                names.append(addon_dir.name)
+    rows = []
+    paths = []
 
-        if names:
-            click.echo(f"Found {len(names)} symlinked addon(s):")
-            click.echo(human_readable(sorted(names), sep=NEW_LINE))
-        return 0
+    # gather submodules info
+    subs = {}
+    if gitmodules:
+        for name, path, branch, url, pull_request in parse_gitmodules(gitmodules):
+            canonical_url, _, _ = parse_repository_url(url) if url else ("", None, None)
+            subs[path] = {
+                "name": name,
+                "path": path,
+                "branch": branch or "",
+                "url": canonical_url,
+                "pr": pull_request,
+            }
 
-    subs = parse_submodules_extended(gm)
-    if submodules:
-        subs = {k: v for k, v in subs.items() if k in submodules}
-
-    results = []
-    for name, info in subs.items():
-        sub_path = info.get("path")
-        if not sub_path:
+    for addon in find_addons(repo, shallow=not show_all):
+        # FIXME: this is a bit of a hack, should be improved
+        # skip duplicates (can happen if an addon is in a submodule and in the root)
+        if addon.path in paths:
             continue
-        abs_path = repo / sub_path
-        if not abs_path.exists():
-            if init:  # small typo-proofing
-                with contextlib.suppress(subprocess.CalledProcessError):
-                    submodule_update(sub_path)
 
-            # re-check
-            if not abs_path.exists():
-                continue
-        for addon_dir in find_addons(abs_path):
-            results.append(
-                {
-                    "addon": addon_dir.name,
-                    "submodule": name,
-                    "path": str(addon_dir.relative_to(repo)),
-                    "submodule_path": sub_path,
-                    "url": info.get("url") or "",
-                    "branch": info.get("branch") or "",
-                }
-            )
+        paths.append(addon.path)
 
-    results.sort(key=lambda item: item["addon"])
+        sub = subs.get(addon.rel_path, {})
 
-    # Output
-    if format == "json":
-        print(json.dumps(results, indent=2, ensure_ascii=False))
-    elif format == "csv":
-        fields = ["addon", "submodule", "path", "submodule_path", "url", "branch"]
-        w = csv.DictWriter(sys.stdout, fieldnames=fields)
-        w.writeheader()
-        for row in results:
-            w.writerow(row)
-    else:
-        if not results:
-            click.echo("No addons found in local submodules.")
-            return 0
-        # compact text table
-        click.echo(f"Found {len(results)} addon(s):")
-        for r in results:
-            click.echo(
-                f"- {r['addon']:30}  [{r['submodule']}]  {r['path']}  (branch={r['branch'] or '-'})"
-            )
+        rows.append(
+            [
+                addon.technical_name,
+                render_boolean(addon.symlink),
+                # human_readable(addon.rel_path, width=40),
+                human_readable(sub.get("name", ""), width=30),
+                human_readable(sub.get("branch", "")),
+                render_boolean(sub.get("pr", False)),
+                addon.version,
+                human_readable(addon.author, width=30),
+            ]
+        )
+
+    # sort by addon name
+    rows.sort(key=lambda r: r[0])
+
+    click.echo(
+        render_table(
+            rows,
+            headers=["Addon", "S", "Submodule", "Upstream", "PR", "Version", "Author"],
+            index=True,
+        )
+    )
 
     return 0
+
+    # # Output
+    # if format == "json":
+    #     print(json.dumps(results, indent=2, ensure_ascii=False))
+    # elif format == "csv":
+    #     fields = ["addon", "submodule", "path", "submodule_path", "url", "branch"]
+    #     w = csv.DictWriter(sys.stdout, fieldnames=fields)
+    #     w.writeheader()
+    #     for row in results:
+    #         w.writerow(row)
+    # else:
+    #     if not results:
+    #         click.echo("No addons found in local submodules.")
+    #         return 0
+    #     # compact text table
+    #     click.echo(f"Found {len(results)} addon(s):")
+    #     for r in results:
+    #         click.echo(
+    #             f"- {r['addon']:30}  [{r['submodule']}]  {r['path']}  (branch={r['branch'] or '-'})"
+    #         )
+
+    # return 0

@@ -1,7 +1,13 @@
 import click
 
 from osh.gitutils import get_last_commit, load_repo, parse_gitmodules
-from osh.utils import render_table
+from osh.utils import (
+    format_datetime,
+    human_readable,
+    parse_repository_url,
+    render_boolean,
+    render_table,
+)
 
 
 @click.command("show")
@@ -19,11 +25,22 @@ def main(dry_run: bool, no_commit: bool):
         raise click.Abort()
 
     rows = []
-    for name, path, branch, _, pull_request in parse_gitmodules(gitmodules):
-        row = [name, branch, pull_request or ""]
+    for name, path, branch, url, pull_request in parse_gitmodules(gitmodules):
+        canonical_url, _, _ = parse_repository_url(url) if url else ("", None, None)
+        row = [
+            human_readable(name, width=50),
+            canonical_url,
+            branch,
+            render_boolean(pull_request) or "",
+        ]
         last_commit = get_last_commit(path)
         if last_commit:
-            row += [last_commit.date, last_commit.age, last_commit.author, last_commit.sha]
+            row += [
+                format_datetime(last_commit.date),
+                last_commit.age,
+                # last_commit.author,
+                last_commit.sha,
+            ]
         else:
             row += ["no commit found", "--", "--", "--"]
         rows.append(row)
@@ -37,7 +54,7 @@ def main(dry_run: bool, no_commit: bool):
     click.echo(
         render_table(
             rows,
-            headers=["Name", "Upstream", "PR", "Last Commit", "Age", "Author", "SHA"],
+            headers=["Name", "Url", "Upstream", "PR", "Last Commit", "Age", "SHA"],
             index=False,
         )
     )
